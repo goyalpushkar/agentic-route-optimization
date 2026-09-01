@@ -3,12 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>AI Wholesale Grocery Route Optimization & Carrier Booking Engine</title>
+<title>Executive Pitch: Autonomous Multi-Temp Routing & Carrier Booking Engine</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 <style>
-/* === CSS RESET & VIEWPORT BASE === */
+/* === CSS RESET & VIEWPORT INVARIANTS === */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -22,7 +22,6 @@
   --border-subtle: #1e293b;
   --border-accent: rgba(6, 182, 212, 0.4);
   --cyan: #06b6d4;
-  --cyan-glow: rgba(6, 182, 212, 0.15);
   --emerald: #10b981;
   --amber: #f59e0b;
   --rose: #f43f5e;
@@ -43,7 +42,6 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* === SLIDE CONTAINER & TRANSITIONS === */
 .presentation-container {
   width: 100vw;
   height: 100vh;
@@ -58,7 +56,7 @@ html, body {
   left: 0;
   width: 100%;
   height: 100%;
-  padding: clamp(1.2rem, 3.5vh, 2.5rem) clamp(1.5rem, 5vw, 4rem);
+  padding: clamp(1.2rem, 3.2vh, 2.2rem) clamp(1.5rem, 5vw, 4rem);
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -76,9 +74,8 @@ html, body {
   z-index: 10;
 }
 
-/* === HEADER & TYPOGRAPHY === */
 .slide-header {
-  margin-bottom: clamp(0.8rem, 2vh, 1.5rem);
+  margin-bottom: clamp(0.6rem, 1.8vh, 1.2rem);
   flex-shrink: 0;
 }
 
@@ -86,20 +83,20 @@ html, body {
   display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  padding: 0.25rem 0.75rem;
+  padding: 0.2rem 0.65rem;
   border-radius: 9999px;
   background: rgba(6, 182, 212, 0.12);
   border: 1px solid var(--border-accent);
   color: var(--cyan);
-  font-size: clamp(0.65rem, 1.1vh, 0.75rem);
+  font-size: clamp(0.65rem, 1.1vh, 0.72rem);
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.3rem;
 }
 
 .slide-title {
-  font-size: clamp(1.3rem, 3vh, 2rem);
+  font-size: clamp(1.25rem, 2.8vh, 1.85rem);
   font-weight: 800;
   color: var(--text-main);
   line-height: 1.2;
@@ -107,7 +104,7 @@ html, body {
 }
 
 .slide-subtitle {
-  font-size: clamp(0.8rem, 1.6vh, 0.95rem);
+  font-size: clamp(0.78rem, 1.5vh, 0.9rem);
   color: var(--text-muted);
   margin-top: 0.2rem;
 }
@@ -116,7 +113,7 @@ html, body {
 .grid-3col {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: clamp(0.8rem, 1.8vw, 1.4rem);
+  gap: clamp(0.8rem, 1.8vw, 1.3rem);
   flex: 1;
   min-height: 0;
 }
@@ -141,7 +138,7 @@ html, body {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   grid-template-rows: 1fr 1fr;
-  gap: clamp(0.6rem, 1.4vh, 1rem);
+  gap: clamp(0.6rem, 1.3vh, 0.9rem);
   flex: 1;
   min-height: 0;
 }
@@ -151,7 +148,7 @@ html, body {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   border-radius: 12px;
-  padding: clamp(0.9rem, 2vh, 1.4rem);
+  padding: clamp(0.8rem, 1.8vh, 1.2rem);
   display: flex;
   flex-direction: column;
   position: relative;
@@ -170,24 +167,24 @@ html, body {
 }
 
 .card-title {
-  font-size: clamp(0.95rem, 1.8vh, 1.15rem);
+  font-size: clamp(0.9rem, 1.7vh, 1.05rem);
   font-weight: 700;
   color: var(--text-main);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.4rem;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .card-body {
-  font-size: clamp(0.75rem, 1.4vh, 0.88rem);
+  font-size: clamp(0.72rem, 1.35vh, 0.84rem);
   color: var(--text-muted);
   line-height: 1.45;
   flex: 1;
 }
 
 .bullet-item {
-  margin-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
   display: flex;
   align-items: flex-start;
   gap: 0.4rem;
@@ -198,62 +195,58 @@ html, body {
 }
 
 .metric-big {
-  font-size: clamp(1.8rem, 3.8vh, 2.5rem);
+  font-size: clamp(1.6rem, 3.4vh, 2.2rem);
   font-weight: 800;
   line-height: 1;
   color: var(--emerald);
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 
 .metric-label {
-  font-size: clamp(0.75rem, 1.3vh, 0.85rem);
+  font-size: clamp(0.72rem, 1.25vh, 0.82rem);
   font-weight: 700;
   color: var(--text-main);
 }
 
 .metric-sub {
-  font-size: clamp(0.68rem, 1.1vh, 0.76rem);
+  font-size: clamp(0.65rem, 1.1vh, 0.74rem);
   color: var(--text-dim);
   margin-top: 0.1rem;
 }
 
 /* === TABLE STYLES === */
-.gcp-table {
+.comp-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: clamp(0.72rem, 1.35vh, 0.84rem);
+  font-size: clamp(0.68rem, 1.3vh, 0.8rem);
 }
 
-.gcp-table th {
+.comp-table th {
   background: #0f172a;
   color: var(--cyan);
   text-align: left;
-  padding: clamp(0.4rem, 1vh, 0.6rem) clamp(0.6rem, 1vw, 0.9rem);
+  padding: clamp(0.4rem, 0.9vh, 0.55rem) clamp(0.5rem, 0.8vw, 0.8rem);
   font-weight: 700;
   border-bottom: 2px solid var(--border-subtle);
 }
 
-.gcp-table td {
-  padding: clamp(0.4rem, 0.9vh, 0.55rem) clamp(0.6rem, 1vw, 0.9rem);
+.comp-table td {
+  padding: clamp(0.35rem, 0.8vh, 0.5rem) clamp(0.5rem, 0.8vw, 0.8rem);
   border-bottom: 1px solid var(--border-subtle);
   color: var(--text-muted);
+  vertical-align: middle;
 }
 
-.gcp-table tr:nth-child(even) td {
+.comp-table tr:nth-child(even) td {
   background: rgba(255, 255, 255, 0.02);
 }
 
-.gcp-table td strong {
-  color: #f1f5f9;
-}
-
-/* === NAVIGATION BAR & CONTROLS === */
 .nav-footer {
   position: absolute;
   bottom: 0;
   left: 0;
   width: 100%;
-  height: clamp(40px, 6vh, 56px);
+  height: clamp(38px, 5.5vh, 50px);
   background: rgba(11, 15, 25, 0.85);
   backdrop-filter: blur(8px);
   border-top: 1px solid var(--border-subtle);
@@ -288,9 +281,9 @@ html, body {
   background: var(--bg-card);
   border: 1px solid var(--border-subtle);
   color: var(--text-main);
-  padding: 0.3rem 0.8rem;
+  padding: 0.25rem 0.75rem;
   border-radius: 6px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
@@ -303,7 +296,7 @@ html, body {
 
 .slide-counter {
   font-family: var(--font-mono);
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-dim);
 }
 </style>
@@ -312,277 +305,212 @@ html, body {
 
 <div class="presentation-container">
 
-  <!-- SLIDE 1: TITLE -->
+  <!-- SLIDE 1: TITLE SLIDE -->
   <div class="slide active" id="slide-1" style="justify-content: center; align-items: center; text-align: center;">
-    <div class="badge-tag" style="margin-bottom: 1.2rem;">AI-Powered Wholesale Grocery Logistics & Autonomous Dispatch</div>
-    <h1 style="font-size: clamp(2rem, 5.5vh, 3.6rem); font-weight: 800; line-height: 1.15; max-width: 1000px; margin-bottom: 1.2rem; background: linear-gradient(135deg, #ffffff 40%, #06b6d4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
-      Autonomous Multi-Temperature Routing & Live Dynamic Carrier Booking Engine
+    <div class="badge-tag" style="margin-bottom: 1rem;">Next-Gen AI Intelligence Layer for Manhattan TMS & Manugistics</div>
+    <h1 style="font-size: clamp(1.8rem, 4.8vh, 3.2rem); font-weight: 800; line-height: 1.15; max-width: 950px; margin-bottom: 1rem; background: linear-gradient(135deg, #ffffff 40%, #06b6d4 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+      Autonomous Multi-Temperature Routing & Live Carrier Booking Engine
     </h1>
-    <p style="font-size: clamp(0.9rem, 2vh, 1.2rem); color: var(--text-muted); max-width: 850px; line-height: 1.5; margin-bottom: 2rem;">
-      End-to-End Autonomous Platform on Google Cloud: Optimizing 46W–53W fleets, flexible movable bulkheads, soft ±1hr retail delivery windows, and parallel sub-3s carrier procurement before WMS wave picking.
+    <p style="font-size: clamp(0.85rem, 1.8vh, 1.1rem); color: var(--text-muted); max-width: 800px; line-height: 1.5; margin-bottom: 1.8rem;">
+      Supercharging our enterprise TMS with dynamic flexible bulkheads, sub-3s parallel spot rate procurement, &lt;300ms HITL stop re-sequencing, and WMS wave lockout prevention on Google Cloud.
     </p>
-    <div style="display: flex; gap: 1.5rem; justify-content: center; font-size: 0.85rem; color: var(--amber); font-weight: 600;">
-      <span>★ 1. Industry Relevance</span>
-      <span>★ 2. Development Methodology</span>
-      <span>★ 3. AI & GCP Tools</span>
-      <span>★ 4. Executive Pitch & ROI</span>
+    <div style="display: flex; gap: 1.5rem; justify-content: center; font-size: 0.8rem; color: var(--amber); font-weight: 600;">
+      <span>⏱ 5–10 Min Executive Pitch</span>
+      <span>★ Wholesale Grocery Logistics</span>
+      <span>★ GCP AI Architecture</span>
     </div>
   </div>
 
-  <!-- SLIDE 2: EXECUTIVE SUMMARY -->
+  <!-- SLIDE 2: COMPARISON WITH MANHATTAN TMS & MANUGISTICS -->
   <div class="slide" id="slide-2">
     <div class="slide-header">
-      <div class="badge-tag">1. Industry Relevance & Problem Statement</div>
-      <h2 class="slide-title">Executive Summary: Transforming Grocery Delivery Economics</h2>
-      <p class="slide-subtitle">Bridging cold-chain planning, fleet physical constraints, and live carrier market rates</p>
+      <div class="badge-tag">1. Competitive Edge & System Integration</div>
+      <h2 class="slide-title">How This System Enhances Manhattan TMS & Manugistics</h2>
+      <p class="slide-subtitle">Protecting our core ERP/TMS investment while closing critical cold-chain & spot market gaps</p>
     </div>
-    <div class="grid-3col">
-      <div class="card">
-        <div class="card-title" style="color: var(--rose);">⚠️ Current Operational Friction</div>
-        <div class="card-body">
-          <div class="bullet-item"><strong>• Temperature Silos:</strong> Frozen, Chill, and Ambient orders dispatched on separate trucks, causing redundant miles.</div>
-          <div class="bullet-item"><strong>• Sub-Optimal Cube Fill:</strong> Manual dispatch averages only 74–78% trailer capacity across 46W/48W/53W.</div>
-          <div class="bullet-item"><strong>• Window Penalties:</strong> Late arrivals outside retail customer windows trigger expensive chargebacks.</div>
-          <div class="bullet-item"><strong>• WMS Wave Lockouts:</strong> Goods picked before carrier confirmation leads to dock congestion and spoilage.</div>
-        </div>
-      </div>
-      <div class="card highlight-cyan">
-        <div class="card-title" style="color: var(--cyan);">💡 Autonomous AI Solution</div>
-        <div class="card-body">
-          <div class="bullet-item"><strong>• Flexible Bulkheads:</strong> MC-VRPTW solver adjusts insulated bulkheads in 2-pallet increments per route.</div>
-          <div class="bullet-item"><strong>• Soft-Window Tolerance:</strong> Optimizes routes with ±1hr buffer and 30-min standard dock dwell times.</div>
-          <div class="bullet-item"><strong>• Sub-3s Rate Broadcast:</strong> Parallel spot RFQ discovery prevents paying stale contracted rates.</div>
-          <div class="bullet-item"><strong>• WMS Wave Sync:</strong> Locks carrier booking BEFORE warehouse picking waves are released.</div>
-        </div>
-      </div>
-      <div class="card highlight-emerald">
-        <div class="card-title" style="color: var(--emerald);">📈 Quantified Business ROI</div>
-        <div class="card-body" style="display: flex; flex-direction: column; justify-content: space-around;">
-          <div>
-            <div class="metric-big">92%+</div>
-            <div class="metric-label">Trailer Cube Utilization</div>
-            <div class="metric-sub">Up from ~76% baseline via multi-temp packing</div>
-          </div>
-          <div>
-            <div class="metric-big">16.2%</div>
-            <div class="metric-label">Fleet Miles & Fuel Saved</div>
-            <div class="metric-sub">Single-drop consolidation across retail routes</div>
-          </div>
-          <div>
-            <div class="metric-big">$1.8M+</div>
-            <div class="metric-label">Net Annual Cost Savings</div>
-            <div class="metric-sub">Payback in &lt; 5 months on GCP infrastructure</div>
-          </div>
-        </div>
-      </div>
+    <div class="card" style="padding: 0.4rem;">
+      <table class="comp-table">
+        <thead>
+          <tr>
+            <th style="width: 22%;">Capability</th>
+            <th style="width: 38%;">Legacy Manhattan TMS / Manugistics</th>
+            <th style="width: 40%; color: var(--emerald);">Our AI Autonomous Layer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Multi-Temp Bulkheads</strong></td>
+            <td><span style="color: var(--rose);">❌</span> Static compartment configs. Cannot dynamically shift bulkheads in 2-pallet increments.</td>
+            <td><span style="color: var(--emerald);">✅</span> Dynamically shifts bulkheads (Frozen/Chill/Dry) per route, boosting cube fill from 76% to <strong>92%+</strong>.</td>
+          </tr>
+          <tr>
+            <td><strong>Carrier Rate Discovery</strong></td>
+            <td><span style="color: var(--rose);">❌</span> Relies on static contracted rate tables and sequential waterfall tendering.</td>
+            <td><span style="color: var(--emerald);">✅</span> Parallel broadcast fetches live spot & contracted rates in &lt;3s, scored on <strong>40/30/20/10 matrix</strong>.</td>
+          </tr>
+          <tr>
+            <td><strong>WMS Wave Release</strong></td>
+            <td><span style="color: var(--rose);">❌</span> Wave picking scheduled by clock time; staging docks clog if carrier tender drops.</td>
+            <td><span style="color: var(--emerald);">✅</span> Time-locks capacity: Carrier booking is confirmed <strong>BEFORE</strong> WMS picking waves start.</td>
+          </tr>
+          <tr>
+            <td><strong>Dispatcher Edit Speed</strong></td>
+            <td><span style="color: var(--rose);">❌</span> Manual edits require 30–60 min batch re-runs or break constraint tracking.</td>
+            <td><span style="color: var(--emerald);">✅</span> In-memory Redis cache recalculates drag-and-drop stop edits and ETAs in <strong>&lt;300ms</strong>.</td>
+          </tr>
+          <tr>
+            <td><strong>Reasoning & Exceptions</strong></td>
+            <td><span style="color: var(--rose);">❌</span> Rigid rules: Throws unassigned stops without trade-off explanations.</td>
+            <td><span style="color: var(--emerald);">✅</span> Gemini 2.5 LLM reasons over soft windows (±1hr) and generates natural language briefs.</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
   </div>
 
-  <!-- SLIDE 3: GROCERY COLD-CHAIN & FLEET REALITIES -->
+  <!-- SLIDE 3: 6 SPECIALIZED AI AGENTS (BRIEF) -->
   <div class="slide" id="slide-3">
     <div class="slide-header">
-      <div class="badge-tag">1. Domain Depth & Grocery Realities</div>
-      <h2 class="slide-title">Cold-Chain Complexity & Heterogeneous Fleet Specs</h2>
-      <p class="slide-subtitle">Accurately modeling multi-temperature reefers, dock physical restrictions, and 4D order volumes</p>
-    </div>
-    <div class="grid-4col">
-      <div class="card">
-        <div class="card-title">❄️ Multi-Temp Reefers</div>
-        <div class="card-body">
-          <p style="color: var(--amber); font-weight: 700; margin-bottom: 0.4rem;">Flexible Bulkheads</p>
-          <p>Movable insulated bulkheads adjusted in 2-pallet increments. Holds Frozen (-10°F), Chill (36°F), and Dry Grocery in one single consolidated drop.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">🚛 Fleet Inventory</div>
-        <div class="card-body">
-          <p style="color: var(--amber); font-weight: 700; margin-bottom: 0.4rem;">46W, 48W, 52W, 53W</p>
-          <p>Heterogeneous mix of single-temp and multi-temp reefers (22 to 30 pallet spots). Solver avoids splitting orders unless volume exceeds max trailer capacity.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">🏢 Dock Physical Rules</div>
-        <div class="card-body">
-          <p style="color: var(--amber); font-weight: 700; margin-bottom: 0.4rem;">Length & Liftgates</p>
-          <p>Downtown store locations restricted to 46W/48W trailers; stores lacking elevated loading docks automatically mapped to liftgate-equipped units.</p>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">📦 4D Volume & Catch-Weight</div>
-        <div class="card-body">
-          <p style="color: var(--amber); font-weight: 700; margin-bottom: 0.4rem;">Pallets, Cube, Cases, Lbs</p>
-          <p>Full physical SKU profiling including gross catch-weight for meats/produce to ensure legal highway axle weight and cube compliance.</p>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 4: 6-AGENT COLLABORATIVE ARCHITECTURE -->
-  <div class="slide" id="slide-4">
-    <div class="slide-header">
-      <div class="badge-tag">3. AI Tools & Agentic Architecture</div>
-      <h2 class="slide-title">6-Agent Collaborative System: Sourcing to Booking</h2>
-      <p class="slide-subtitle">Event-driven orchestration on Google Cloud Run & Vertex AI</p>
+      <div class="badge-tag">3. AI Tools & System Roles</div>
+      <h2 class="slide-title">The 6-Agent Ecosystem: From Order Sourcing to Booking</h2>
+      <p class="slide-subtitle">Modular event-driven architecture running on Google Cloud Run & Vertex AI</p>
     </div>
     <div class="grid-6cards">
       <div class="card">
         <div class="card-title">Agent 1: DC Sourcing & Profiler</div>
-        <div class="card-body">Normalizes 4D demand across Frozen, Chill, Ambient, HMBC. Slices orders by optimal origin distribution center.</div>
+        <div class="card-body">
+          <p>• Slices orders by optimal origin DC.<br>• Normalizes 4D demand (Pallet, Cube, Case, Catch-Weight) across Frozen, Chill, Ambient, HMBC.</p>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Agent 2: Fleet & Dock Allocator</div>
-        <div class="card-body">Catalogs 46W-53W capacities, bulkhead step increments, driver HOS limits, and customer dock constraints.</div>
+        <div class="card-body">
+          <p>• Catalogs 46W, 48W, 53W reefer capacities.<br>• Enforces 2-pallet bulkhead step rules.<br>• Validates retail dock length & liftgate limits.</p>
+        </div>
       </div>
       <div class="card">
-        <div class="card-title">Agent 3: Route Solver Controller</div>
-        <div class="card-body">Formulates Multi-Compartment VRP with soft ±1hr windows. Executes Cloud Optimization API / OR-Tools solver.</div>
+        <div class="card-title">Agent 3: Route Optimizer</div>
+        <div class="card-body">
+          <p>• Solves MC-VRPTW with soft ±1hr windows.<br>• Enforces OTIF &gt; Overtime &gt; Miles &gt; Fleet.<br>• Enforces reverse-drop LIFO loading sequence.</p>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Agent 4: Live Rate Aggregator</div>
-        <div class="card-body">Broadcasts parallel asynchronous RFQs across carrier APIs and EDI 204 freight exchanges in &lt;3 seconds.</div>
+        <div class="card-body">
+          <p>• Broadcasts route specs to carrier APIs in parallel.<br>• Fetches live spot & contracted rates in &lt;3s.<br>• Verifies carrier reefer availability.</p>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Agent 5: Carrier Scoring & Booking</div>
-        <div class="card-body">Evaluates bids via 40/30/20/10 scoring; secures capacity confirmation BEFORE triggering WMS wave picking.</div>
+        <div class="card-body">
+          <p>• Evaluates bids via 40/30/20/10 matrix.<br>• Locks booking via EDI 204/API.<br>• Signals WMS wave release ONLY after booking.</p>
+        </div>
       </div>
       <div class="card">
         <div class="card-title">Agent 6: Cold-Chain Monitor</div>
-        <div class="card-body">Tracks in-transit IoT reefer temperatures and GPS dwell times against 30-min baseline to trigger recovery re-routes.</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 5: MATHEMATICAL OPTIMIZATION -->
-  <div class="slide" id="slide-5">
-    <div class="slide-header">
-      <div class="badge-tag">2. Development Methodology & Core Solvers</div>
-      <h2 class="slide-title">Mathematical Formulation: Multi-Compartment VRP (MC-VRPTW)</h2>
-      <p class="slide-subtitle">Strict priority hierarchy balancing customer service, driver safety, and operational spend</p>
-    </div>
-    <div class="grid-2col">
-      <div class="card">
-        <div class="card-title">Objective Function & Penalties</div>
         <div class="card-body">
-          <div style="background: rgba(6, 182, 212, 0.1); padding: 0.6rem; border-radius: 6px; font-family: var(--font-mono); color: var(--cyan); font-size: 0.85rem; margin-bottom: 0.8rem;">
-            Min Z = w1·Cost(OTIF) + w2·Cost(Overtime) + w3·Cost(Miles) + w4·Cost(Fleet)
-          </div>
-          <div class="bullet-item"><strong>• Priority Hierarchy:</strong> w1 &gt;&gt; w2 &gt;&gt; w3 &gt;&gt; w4 (On-time retail satisfaction prioritized first).</div>
-          <div class="bullet-item"><strong>• Soft Windows (±1hr):</strong> Graduated penalty slopes outside the 1-hour buffer; 30 min standard stop dwell time.</div>
-          <div class="bullet-item"><strong>• LIFO Constraint:</strong> Stop sequence matches reverse pallet loading so later drops never block early drops.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Dual Operational Engine Modes</div>
-        <div class="card-body">
-          <div class="bullet-item"><strong>• Mode A (Daily Dispatch):</strong> Runs nightly on firm customer orders; outputs turn-by-turn routes, bulkhead positions, and carrier bookings.</div>
-          <div class="bullet-item"><strong>• Mode B (2-Month Forecast Simulator):</strong> Monte Carlo capacity simulator running over 2-month probabilistic demand to forecast trailer fleet adequacy.</div>
-          <div class="bullet-item"><strong>• 3-Month Backtesting Engine:</strong> Re-runs historical order streams to benchmark empirical cost and mileage savings over legacy human dispatch.</div>
+          <p>• Continuously tracks IoT reefer temps & GPS.<br>• Monitors delays against 30-min dock baseline.<br>• Triggers automated dynamic re-routes.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 6: CARRIER SCORING (40/30/20/10) -->
-  <div class="slide" id="slide-6">
+  <!-- SLIDE 4: CARRIER SELECTION & WMS WAVE SYNC -->
+  <div class="slide" id="slide-4">
     <div class="slide-header">
       <div class="badge-tag">2. Methodology & Sourcing Intelligence</div>
-      <h2 class="slide-title">Dynamic Carrier Sourcing & 40/30/20/10 Multi-Criteria Scoring</h2>
-      <p class="slide-subtitle">Real-time spot rate discovery + automated booking lock before warehouse wave picking</p>
+      <h2 class="slide-title">Dynamic Carrier Sourcing (40/30/20/10) & WMS Wave Sync</h2>
+      <p class="slide-subtitle">Securing lowest compliant freight rate while eliminating warehouse wave lockouts</p>
     </div>
     <div class="grid-4col" style="margin-bottom: 0.8rem;">
       <div class="card">
-        <div style="font-size: 2rem; font-weight: 800; color: var(--cyan);">40%</div>
-        <div style="font-weight: 700; color: var(--text-main);">Live Rate</div>
-        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">Scores live spot vs contracted rates in parallel in &lt;3s.</div>
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--cyan);">40%</div>
+        <div style="font-weight: 700; color: var(--text-main);">Live Freight Rate</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Captures live spot savings vs stale contracted tables.</div>
       </div>
       <div class="card">
-        <div style="font-size: 2rem; font-weight: 800; color: var(--cyan);">30%</div>
-        <div style="font-weight: 700; color: var(--text-main);">Reliability</div>
-        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">3mo BigQuery trailing: 60% On-Time Pickup + 40% Tender Acceptance.</div>
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--cyan);">30%</div>
+        <div style="font-weight: 700; color: var(--text-main);">Carrier Reliability</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">3mo BigQuery trailing: 60% OTP + 40% Acceptance.</div>
       </div>
       <div class="card">
-        <div style="font-size: 2rem; font-weight: 800; color: var(--cyan);">20%</div>
-        <div style="font-weight: 700; color: var(--text-main);">Cold-Chain SLA</div>
-        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">FSMA compliance, continuous IoT temp logs, reefer age &lt;5 yrs.</div>
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--cyan);">20%</div>
+        <div style="font-weight: 700; color: var(--text-main);">Cold-Chain SLA Fit</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">FSMA compliance, IoT temp logs, reefer age &lt;5 yrs.</div>
       </div>
       <div class="card">
-        <div style="font-size: 2rem; font-weight: 800; color: var(--cyan);">10%</div>
+        <div style="font-size: 1.8rem; font-weight: 800; color: var(--cyan);">10%</div>
         <div style="font-weight: 700; color: var(--text-main);">Preferred Status</div>
-        <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.3rem;">Strategic partner bonus to maintain long-term carrier relationships.</div>
+        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 0.2rem;">Bonus for trusted Tier-1 contracted fleet partners.</div>
       </div>
     </div>
-    <div class="card highlight-cyan" style="padding: 0.8rem 1.2rem;">
-      <p style="font-size: 0.85rem; color: #f1f5f9; line-height: 1.4;">
-        <strong>🔒 WMS Wave-Picking Synchronization:</strong> Carrier booking is locked via EDI 990 / API <em>before</em> warehouse picking waves begin. This eliminates warehouse staging dock congestion, picker double-handling, and perishable spoilage from dropped tenders.
+    <div class="card highlight-cyan" style="padding: 0.7rem 1.2rem;">
+      <p style="font-size: 0.82rem; color: #f1f5f9; line-height: 1.4;">
+        <strong>🔒 WMS Wave Lockout Prevention:</strong> Carrier booking is confirmed via EDI 990 / API <em>before</em> warehouse picking waves start. This completely eliminates warehouse staging dock congestion, wasted picker labor, and perishable spoilage from dropped carrier tenders.
       </p>
     </div>
   </div>
 
-  <!-- SLIDE 7: HITL DISPATCHER COCKPIT -->
-  <div class="slide" id="slide-7">
+  <!-- SLIDE 5: HITL DISPATCHER COCKPIT -->
+  <div class="slide" id="slide-5">
     <div class="slide-header">
       <div class="badge-tag">4. Presentation & Interactive UX</div>
       <h2 class="slide-title">Human-in-the-Loop (HITL) Dispatcher Cockpit & Controls</h2>
-      <p class="slide-subtitle">Full transparency, drag-and-drop stop editing, and two-stage executive approval gateways</p>
+      <p class="slide-subtitle">Interactive drag-and-drop editing with sub-second constraint validation</p>
     </div>
     <div class="grid-3col">
       <div class="card">
-        <div class="card-title">🗺️ Interactive Map & Sequencer</div>
+        <div class="card-title">🗺️ Interactive Route Map</div>
         <div class="card-body">
-          <div class="bullet-item"><strong>• Live Map View:</strong> Color-coded routes by 46W/48W/53W with customer delivery window status.</div>
-          <div class="bullet-item"><strong>• Drag & Drop Stops:</strong> Move stops between routes or re-sequence drops seamlessly.</div>
-          <div class="bullet-item"><strong>• &lt;300ms Validation:</strong> In-memory Redis cache recalculates ETAs, window violations, and cost delta instantly.</div>
+          <p>• Live route paths color-coded by 46W/48W/53W.<br>• Dispatchers drag & drop stops between trailers.<br>• In-memory Redis cache recalculates arrival ETAs, ±1hr windows, and cost deltas in <strong>&lt;300ms</strong>.</p>
         </div>
       </div>
       <div class="card">
         <div class="card-title">🧊 2D Trailer Bulkhead Visualizer</div>
         <div class="card-body">
-          <div class="bullet-item"><strong>• Floorplan Cross-Section:</strong> Top-down view of 22 to 30 pallet positions color-coded by temp class.</div>
-          <div class="bullet-item"><strong>• Interactive Bulkhead Slider:</strong> Adjust Frozen/Chill/Ambient compartment boundaries in 2-pallet steps.</div>
-          <div class="bullet-item"><strong>• LIFO Warning:</strong> Alerts if an early stop is blocked behind late-drop pallets.</div>
+          <p>• Top-down floorplan cross-section of 22 to 30 pallet spots.<br>• Interactive slider shifts Frozen/Chill/Ambient bulkheads in 2-pallet increments.<br>• LIFO warning alerts if early stops are blocked.</p>
         </div>
       </div>
       <div class="card highlight-emerald">
         <div class="card-title" style="color: var(--emerald);">✅ Two-Stage Approval Gates</div>
         <div class="card-body">
-          <div class="bullet-item"><strong>• Gate 1 (Route Approval):</strong> Dispatcher reviews proposed routes; one-click approval advances to carrier RFQ.</div>
-          <div class="bullet-item"><strong>• Gate 2 (Carrier Tender):</strong> Dispatcher confirms top 40/30/20/10 AI carrier or selects override before WMS release.</div>
+          <p>• <strong>Gate 1 (Route Review):</strong> Dispatcher reviews proposed routes; one-click approval triggers carrier RFQ.<br>• <strong>Gate 2 (Carrier Tender):</strong> Dispatcher confirms top AI carrier or selects override before WMS release.</p>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 8: GCP TECHNICAL ARCHITECTURE -->
-  <div class="slide" id="slide-8">
+  <!-- SLIDE 6: GCP TECHNICAL ARCHITECTURE -->
+  <div class="slide" id="slide-6">
     <div class="slide-header">
-      <div class="badge-tag">3. AI Tools & Technical Architecture</div>
+      <div class="badge-tag">3. AI Tools & Cloud Architecture</div>
       <h2 class="slide-title">Google Cloud Native Architecture: Scalable & Serverless</h2>
-      <p class="slide-subtitle">Enterprise-grade infrastructure integrating Vertex AI, BigQuery, and Cloud Run</p>
+      <p class="slide-subtitle">Enterprise infrastructure integrating Vertex AI, BigQuery, and Cloud Run</p>
     </div>
-    <div class="card" style="padding: 0.5rem;">
-      <table class="gcp-table">
+    <div class="card" style="padding: 0.4rem;">
+      <table class="comp-table">
         <thead>
           <tr>
-            <th>GCP Component</th>
-            <th>Architectural Role</th>
-            <th>Logistics Capability & Purpose</th>
+            <th style="width: 28%;">GCP Component</th>
+            <th style="width: 28%;">Architectural Role</th>
+            <th style="width: 44%;">Logistics Capability & Integration</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><strong>Vertex AI (Gemini 2.5)</strong></td>
             <td>Agent Reasoning & Copilot</td>
-            <td>Powers Agent decision explanations, exception handling, and dispatcher copilot dialogues.</td>
+            <td>Decision explanations, exception handling, and natural language dispatcher briefs.</td>
           </tr>
           <tr>
             <td><strong>Cloud Optimization API / OR-Tools</strong></td>
             <td>Mathematical Solver</td>
-            <td>Computes Multi-Compartment VRP with flexible bulkheads, soft ±1hr windows, and LIFO loading.</td>
+            <td>Computes Multi-Compartment VRP with flexible bulkheads, soft ±1hr windows, and LIFO.</td>
           </tr>
           <tr>
             <td><strong>BigQuery Lakehouse</strong></td>
-            <td>Data Warehouse & ML Engine</td>
-            <td>Stores 3mo historical actuals, 2mo probabilistic demand models, and carrier scorecards (OTP/OTD).</td>
+            <td>Data Warehouse & Scorecards</td>
+            <td>Stores 3mo historical actuals, 2mo probabilistic demand models, and carrier OTP/OTD metrics.</td>
           </tr>
           <tr>
             <td><strong>Cloud Run & LangGraph</strong></td>
@@ -592,7 +520,7 @@ html, body {
           <tr>
             <td><strong>Cloud Pub/Sub & Functions</strong></td>
             <td>Parallel Rate Procurement</td>
-            <td>Broadcasts parallel quote requests to dozens of carrier APIs asynchronously in &lt;3 seconds.</td>
+            <td>Broadcasts parallel quote requests to dozens of carrier APIs asynchronously in &lt;3s.</td>
           </tr>
           <tr>
             <td><strong>Cloud Firestore & Redis</strong></td>
@@ -604,65 +532,18 @@ html, body {
     </div>
   </div>
 
-  <!-- SLIDE 9: DEVELOPMENT METHODOLOGY & VALIDATION -->
-  <div class="slide" id="slide-9">
+  <!-- SLIDE 7: BUSINESS ROI & ROADMAP -->
+  <div class="slide" id="slide-7">
     <div class="slide-header">
-      <div class="badge-tag">2. Development Methodology</div>
-      <h2 class="slide-title">Engineering Methodology: Agile TDD & Phased Rollout</h2>
-      <p class="slide-subtitle">Structured 16-week delivery roadmap with empirical backtesting milestones</p>
-    </div>
-    <div class="grid-4col">
-      <div class="card">
-        <div class="card-title">Phase 1: Foundation</div>
-        <div class="card-body">
-          <p style="color: var(--cyan); font-weight: 700; margin-bottom: 0.3rem;">Weeks 1 – 4</p>
-          <div class="bullet-item">• BigQuery schemas for orders & fleet.</div>
-          <div class="bullet-item">• OR-Tools MC-VRPTW solver with 2-pallet bulkhead logic.</div>
-          <div class="bullet-item">• Automated unit & integration tests.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Phase 2: Agent Core</div>
-        <div class="card-body">
-          <p style="color: var(--cyan); font-weight: 700; margin-bottom: 0.3rem;">Weeks 5 – 8</p>
-          <div class="bullet-item">• LangGraph 6-agent orchestrator on Cloud Run.</div>
-          <div class="bullet-item">• Pub/Sub parallel carrier rate aggregator.</div>
-          <div class="bullet-item">• 40/30/20/10 carrier scoring engine.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Phase 3: Dispatcher UI</div>
-        <div class="card-body">
-          <p style="color: var(--cyan); font-weight: 700; margin-bottom: 0.3rem;">Weeks 9 – 12</p>
-          <div class="bullet-item">• Next.js interactive route map & drag-drop.</div>
-          <div class="bullet-item">• 2D trailer bulkhead visualizer with LIFO checks.</div>
-          <div class="bullet-item">• Two-stage approval state machine.</div>
-        </div>
-      </div>
-      <div class="card">
-        <div class="card-title">Phase 4: Pilot & Scale</div>
-        <div class="card-body">
-          <p style="color: var(--cyan); font-weight: 700; margin-bottom: 0.3rem;">Weeks 13 – 16</p>
-          <div class="bullet-item">• 3-month historical backtesting benchmark.</div>
-          <div class="bullet-item">• Live pilot at 2 regional Distribution Centers.</div>
-          <div class="bullet-item">• Full production cutover.</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- SLIDE 10: BUSINESS ROI -->
-  <div class="slide" id="slide-10">
-    <div class="slide-header">
-      <div class="badge-tag">4. Pitch & Investment Justification</div>
-      <h2 class="slide-title">Quantified ROI & Financial Impact Summary</h2>
-      <p class="slide-subtitle">Proven cost reduction across fleet operations, spot procurement, and retail chargebacks</p>
+      <div class="badge-tag">2. Methodology & Financial Justification</div>
+      <h2 class="slide-title">Quantified ROI & 16-Week Phased Delivery Roadmap</h2>
+      <p class="slide-subtitle">High margin recovery with empirical backtesting against our 3-month historical data</p>
     </div>
     <div class="grid-4col" style="margin-bottom: 0.8rem;">
       <div class="card highlight-emerald">
         <div class="metric-big">$1.8M–$2.4M</div>
         <div class="metric-label">Annual Net Savings</div>
-        <div class="metric-sub">Fleet, fuel, and carrier freight</div>
+        <div class="metric-sub">Fleet, fuel, and spot freight</div>
       </div>
       <div class="card highlight-emerald">
         <div class="metric-big">16.2%</div>
@@ -672,7 +553,7 @@ html, body {
       <div class="card highlight-emerald">
         <div class="metric-big">14.5%</div>
         <div class="metric-label">Cube Fill Increase</div>
-        <div class="metric-sub">Utilization up from 76% to 91%</div>
+        <div class="metric-sub">Utilization up from 76% to 91%+</div>
       </div>
       <div class="card highlight-emerald">
         <div class="metric-big">&lt; 5 Mo</div>
@@ -680,49 +561,49 @@ html, body {
         <div class="metric-sub">Rapid time-to-value on GCP</div>
       </div>
     </div>
-    <div class="grid-2col">
+    <div class="grid-4col">
       <div class="card">
-        <div class="card-title" style="color: var(--rose);">❌ Legacy Manual Process</div>
-        <div class="card-body">
-          <p>• Siloed dispatchers plan Dry and Frozen routes independently.</p>
-          <p>• Stale contracted rates used without checking live spot savings.</p>
-          <p>• Frequent dock congestion after picking has already started.</p>
-        </div>
+        <div class="card-title">Phase 1: Foundation</div>
+        <div class="card-body"><strong>Weeks 1–4:</strong> BigQuery schemas, OR-Tools MC-VRPTW solver with 2-pallet bulkhead logic, unit tests.</div>
       </div>
-      <div class="card highlight-cyan">
-        <div class="card-title" style="color: var(--emerald);">✅ AI Autonomous Engine</div>
-        <div class="card-body">
-          <p>• Single-drop multi-temp consolidation with dynamic 2-pallet bulkhead splits.</p>
-          <p>• Parallel rate discovery scores live carriers (40/30/20/10) in &lt;3 seconds.</p>
-          <p>• Capacity locked BEFORE WMS wave release eliminates dock staging chaos.</p>
-        </div>
+      <div class="card">
+        <div class="card-title">Phase 2: Agent Core</div>
+        <div class="card-body"><strong>Weeks 5–8:</strong> LangGraph orchestrator, Pub/Sub parallel rate sourcing, 40/30/20/10 scoring engine.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Phase 3: Dispatcher UI</div>
+        <div class="card-body"><strong>Weeks 9–12:</strong> Next.js interactive map with drag-and-drop, 2D trailer visualizer, approval state machine.</div>
+      </div>
+      <div class="card">
+        <div class="card-title">Phase 4: Pilot & Scale</div>
+        <div class="card-body"><strong>Weeks 13–16:</strong> 3mo historical backtesting, shadow runs vs Manhattan TMS, live pilot across 2 DCs.</div>
       </div>
     </div>
   </div>
 
-  <!-- SLIDE 11: ROADMAP & APPROVAL ASK -->
-  <div class="slide" id="slide-11">
+  <!-- SLIDE 8: EXECUTIVE APPROVAL & NEXT STEPS -->
+  <div class="slide" id="slide-8">
     <div class="slide-header">
       <div class="badge-tag">4. Executive Decision & Next Steps</div>
-      <h2 class="slide-title">Project Roadmap, Live MVP Demonstration & Approval Ask</h2>
-      <p class="slide-subtitle">Ready to initiate Phase 1 development and live MVP demonstration</p>
+      <h2 class="slide-title">Executive Approval Ask & Next Immediate Milestone</h2>
+      <p class="slide-subtitle">Ready to initiate Phase 1 and demonstrate the live interactive MVP</p>
     </div>
     <div class="grid-2col">
       <div class="card">
-        <div class="card-title">Next Immediate Milestones</div>
+        <div class="card-title">Strategic Value for Leadership</div>
         <div class="card-body">
-          <div class="bullet-item"><strong>1. Live MVP Sandbox:</strong> Build the interactive demonstrator showcasing route mapping, 2D trailer bulkhead adjustment, and carrier 40/30/20/10 scoring.</div>
-          <div class="bullet-item"><strong>2. 3-Month Historical Ingestion:</strong> Benchmark empirical cost savings on actual company orders in BigQuery.</div>
-          <div class="bullet-item"><strong>3. 2-Month Forward Simulation:</strong> Run Monte Carlo capacity modeling to project fleet requirements.</div>
+          <div class="bullet-item"><strong>• Protects Existing TMS Investment:</strong> Acts as an intelligent cloud-native optimization overlay atop Manhattan TMS & Manugistics.</div>
+          <div class="bullet-item"><strong>• Immediate Margin Impact:</strong> $1.8M–$2.4M in annual savings across fleet operations, spot procurement, and retail chargebacks.</div>
+          <div class="bullet-item"><strong>• De-risked via Historical Backtesting:</strong> Validates savings empirically on our 3-month historical dataset before live cutover.</div>
         </div>
       </div>
       <div class="card" style="background: linear-gradient(135deg, rgba(15, 23, 42, 0.95) 0%, rgba(30, 41, 59, 0.95) 100%); border-color: var(--cyan);">
         <div class="card-title" style="color: var(--cyan);">Executive Approval Ask</div>
         <div class="card-body">
-          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Phase 1 Funding:</strong> Approve budget for GCP services and solver development sprint.</div>
-          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Data Pipeline Access:</strong> Grant GCS/BigQuery pipeline access for 3mo history and 2mo forecast files.</div>
-          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Dispatcher Stakeholder Access:</strong> Engage lead dispatchers for HITL UX calibration.</div>
-          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Proceed to Live MVP:</strong> Launch the interactive MVP build immediately.</div>
+          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Phase 1 Sponsoring:</strong> Approve budget for GCP services and solver development sprint.</div>
+          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Data Pipeline Access:</strong> Grant BigQuery/GCS read access for the 3mo historical and 2mo forecast datasets.</div>
+          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Dispatcher Stakeholder Review:</strong> Engage lead DC dispatchers for HITL cockpit validation.</div>
+          <div class="bullet-item" style="color: #f1f5f9;"><strong>✔ Next Step: Live Interactive MVP:</strong> Proceed to build the live interactive MVP demonstrator.</div>
         </div>
       </div>
     </div>
@@ -734,7 +615,7 @@ html, body {
 <div class="nav-footer">
   <button class="nav-btn" onclick="prevSlide()">◀ Previous</button>
   <div class="nav-dots" id="dotsContainer"></div>
-  <div class="slide-counter" id="slideCounter">1 / 11</div>
+  <div class="slide-counter" id="slideCounter">1 / 8</div>
   <button class="nav-btn" onclick="nextSlide()">Next ▶</button>
 </div>
 
@@ -745,7 +626,6 @@ const totalSlides = slides.length;
 const dotsContainer = document.getElementById('dotsContainer');
 const slideCounter = document.getElementById('slideCounter');
 
-// Build Dots
 for (let i = 0; i < totalSlides; i++) {
   const dot = document.createElement('div');
   dot.classList.add('dot');
@@ -784,7 +664,6 @@ function goToSlide(idx) {
   updateSlide();
 }
 
-// Keyboard controls
 document.addEventListener('keydown', (e) => {
   if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
     nextSlide();

@@ -1,0 +1,68 @@
+{
+  "carriers": [
+    {
+      "carrier_id": "HJBT",
+      "carrier_name": "JB Hunt",
+      "dot_number": "DOT-449102",
+      "tier": "Tier-1 Preferred",
+      "preferred_score": 10,
+      "historical_on_time_pickup_pct": 98.2,
+      "fsma_certified": true,
+      "reefer_telematics_connected": true,
+      "claims_free_rate_pct": 99.4,
+      "pricing_model": {
+        "base_rate_per_mile": 2.85,
+        "fuel_surcharge_per_mile": 0.45,
+        "stop_charge": 65.0
+      }
+    },
+    {
+      "carrier_id": "PSKO",
+      "carrier_name": "Penske Truck Leasing",
+      "dot_number": "DOT-381920",
+      "tier": "Tier-1 Preferred",
+      "preferred_score": 9,
+      "historical_on_time_pickup_pct": 94.6,
+      "fsma_certified": true,
+      "reefer_telematics_connected": true,
+      "claims_free_rate_pct": 98.1,
+      "pricing_model": {
+        "base_rate_per_mile": 2.70,
+        "fuel_surcharge_per_mile": 0.45,
+        "stop_charge": 60.0
+      }
+    },
+    {
+      "carrier_id": "CWAO",
+      "carrier_name": "Cowans Systems Inc",
+      "dot_number": "DOT-102948",
+      "tier": "Tier-2 Secondary",
+      "preferred_score": 7,
+      "historical_on_time_pickup_pct": 91.5,
+      "fsma_certified": true,
+      "reefer_telematics_connected": true,
+      "claims_free_rate_pct": 96.8,
+      "pricing_model": {
+        "base_rate_per_mile": 2.60,
+        "fuel_surcharge_per_mile": 0.45,
+        "stop_charge": 55.0
+      }
+    },
+    {
+      "carrier_id": "CARR-SPOTX",
+      "carrier_name": "CSWTG",
+      "dot_number": "DOT-981244",
+      "tier": "Spot Non-Contracted",
+      "preferred_score": 0,
+      "historical_on_time_pickup_pct": 82.0,
+      "fsma_certified": true,
+      "reefer_telematics_connected": false,
+      "claims_free_rate_pct": 92.5,
+      "pricing_model": {
+        "base_rate_per_mile": 2.30,
+        "fuel_surcharge_per_mile": 0.45,
+        "stop_charge": 45.0
+      }
+    }
+  ]
+}

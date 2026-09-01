@@ -1,3 +1,4 @@
+import os
 import sys
 from pptx import Presentation
 from pptx.util import Inches, Pt
@@ -384,7 +385,8 @@ def create_presentation():
         p_a.add_run().text = d; p_a.runs[1].font.bold = False; p_a.runs[1].font.size = Pt(10.5); p_a.runs[1].font.color.rgb = RGBColor(203, 213, 225)
         p_a.space_after = Pt(10)
 
-    output_pptx = "/Users/pgoyal/Documents/GitHubN/RouteOptimization/Wholesale_Grocery_Route_Optimization_Executive_Deck.pptx"
+    output_dir = os.path.dirname(os.path.abspath(__file__))
+    output_pptx = os.path.join(output_dir, "Wholesale_Grocery_Route_Optimization_Executive_Deck.pptx")
     prs.save(output_pptx)
     print(f"Successfully generated PowerPoint: {output_pptx}")
 
