@@ -1,0 +1,205 @@
+{
+  "distribution_center": {
+    "id": "DC-NEWARK",
+    "name": "Newark Wholesale Regional Distribution Center",
+    "address": "400 Terminal Rd, Newark, NJ 07114",
+    "lat": 40.6925,
+    "lng": -74.1687,
+    "dock_open": "04:00",
+    "dock_close": "22:00"
+  },
+  "orders": [
+    {
+      "order_id": "ORD-1001",
+      "customer_id": "CUST-HOBOKEN",
+      "customer_name": "ShopRite of Hoboken",
+      "address": "900 Madison St, Hoboken, NJ",
+      "lat": 40.7512,
+      "lng": -74.0375,
+      "time_window": {"earliest": "06:00", "latest": "08:30"},
+      "service_time_min": 30,
+      "dock_restrictions": {"max_trailer_len": "48W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 3, "cube_ft3": 210, "cases": 120, "weight_lbs": 3600},
+        "chill": {"pallets": 4, "cube_ft3": 280, "cases": 160, "weight_lbs": 4800},
+        "ambient": {"pallets": 3, "cube_ft3": 210, "cases": 130, "weight_lbs": 3200}
+      }
+    },
+    {
+      "order_id": "ORD-1002",
+      "customer_id": "CUST-JERSEYCITY",
+      "customer_name": "ACME Markets Jersey City",
+      "address": "125 18th St, Jersey City, NJ",
+      "lat": 40.7335,
+      "lng": -74.0410,
+      "time_window": {"earliest": "07:00", "latest": "09:30"},
+      "service_time_min": 30,
+      "dock_restrictions": {"max_trailer_len": "53W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 2, "cube_ft3": 140, "cases": 80, "weight_lbs": 2400},
+        "chill": {"pallets": 3, "cube_ft3": 210, "cases": 110, "weight_lbs": 3300},
+        "ambient": {"pallets": 4, "cube_ft3": 280, "cases": 180, "weight_lbs": 4100}
+      }
+    },
+    {
+      "order_id": "ORD-1003",
+      "customer_id": "CUST-FORTLEE",
+      "customer_name": "H Mart Fort Lee",
+      "address": "112 Linwood Plaza, Fort Lee, NJ",
+      "lat": 40.8540,
+      "lng": -73.9680,
+      "time_window": {"earliest": "07:30", "latest": "10:00"},
+      "service_time_min": 25,
+      "dock_restrictions": {"max_trailer_len": "48W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 4, "cube_ft3": 280, "cases": 150, "weight_lbs": 4600},
+        "chill": {"pallets": 2, "cube_ft3": 140, "cases": 90, "weight_lbs": 2500},
+        "ambient": {"pallets": 2, "cube_ft3": 140, "cases": 95, "weight_lbs": 2100}
+      }
+    },
+    {
+      "order_id": "ORD-1004",
+      "customer_id": "CUST-PARAMUS",
+      "customer_name": "Whole Foods Market Paramus",
+      "address": "300 Bergen Town Center, Paramus, NJ",
+      "lat": 40.9168,
+      "lng": -74.0725,
+      "time_window": {"earliest": "08:00", "latest": "10:30"},
+      "service_time_min": 35,
+      "dock_restrictions": {"max_trailer_len": "53W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 2, "cube_ft3": 140, "cases": 70, "weight_lbs": 2200},
+        "chill": {"pallets": 5, "cube_ft3": 350, "cases": 210, "weight_lbs": 6100},
+        "ambient": {"pallets": 3, "cube_ft3": 210, "cases": 140, "weight_lbs": 3500}
+      }
+    },
+    {
+      "order_id": "ORD-1005",
+      "customer_id": "CUST-CLIFTON",
+      "customer_name": "Trader Joe's Clifton",
+      "address": "259 State Rt 3, Clifton, NJ",
+      "lat": 40.8615,
+      "lng": -74.1485,
+      "time_window": {"earliest": "06:30", "latest": "09:00"},
+      "service_time_min": 30,
+      "dock_restrictions": {"max_trailer_len": "48W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 3, "cube_ft3": 210, "cases": 110, "weight_lbs": 3400},
+        "chill": {"pallets": 3, "cube_ft3": 210, "cases": 120, "weight_lbs": 3600},
+        "ambient": {"pallets": 3, "cube_ft3": 210, "cases": 130, "weight_lbs": 3100}
+      }
+    },
+    {
+      "order_id": "ORD-1006",
+      "customer_id": "CUST-PATERSON",
+      "customer_name": "Super Foodtown Paterson",
+      "address": "597 Broadway, Paterson, NJ",
+      "lat": 40.9180,
+      "lng": -74.1560,
+      "time_window": {"earliest": "09:00", "latest": "11:30"},
+      "service_time_min": 30,
+      "dock_restrictions": {"max_trailer_len": "46W", "liftgate_required": true},
+      "demand": {
+        "frozen": {"pallets": 2, "cube_ft3": 140, "cases": 80, "weight_lbs": 2500},
+        "chill": {"pallets": 2, "cube_ft3": 140, "cases": 95, "weight_lbs": 2800},
+        "ambient": {"pallets": 3, "cube_ft3": 210, "cases": 140, "weight_lbs": 3300}
+      }
+    },
+    {
+      "order_id": "ORD-1007",
+      "customer_id": "CUST-WOODBRIDGE",
+      "customer_name": "Wegmans Woodbridge",
+      "address": "15 Woodbridge Center Dr, Woodbridge, NJ",
+      "lat": 40.5560,
+      "lng": -74.3015,
+      "time_window": {"earliest": "07:00", "latest": "09:30"},
+      "service_time_min": 40,
+      "dock_restrictions": {"max_trailer_len": "53W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 5, "cube_ft3": 350, "cases": 200, "weight_lbs": 5800},
+        "chill": {"pallets": 6, "cube_ft3": 420, "cases": 260, "weight_lbs": 7400},
+        "ambient": {"pallets": 5, "cube_ft3": 350, "cases": 220, "weight_lbs": 5500}
+      }
+    },
+    {
+      "order_id": "ORD-1008",
+      "customer_id": "CUST-EDISON",
+      "customer_name": "H Mart Edison",
+      "address": "1761 State Rt 27, Edison, NJ",
+      "lat": 40.5180,
+      "lng": -74.3980,
+      "time_window": {"earliest": "08:30", "latest": "11:00"},
+      "service_time_min": 30,
+      "dock_restrictions": {"max_trailer_len": "53W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 3, "cube_ft3": 210, "cases": 130, "weight_lbs": 3900},
+        "chill": {"pallets": 4, "cube_ft3": 280, "cases": 170, "weight_lbs": 4900},
+        "ambient": {"pallets": 3, "cube_ft3": 210, "cases": 140, "weight_lbs": 3400}
+      }
+    },
+    {
+      "order_id": "ORD-1009",
+      "customer_id": "CUST-NEWBRUNSWICK",
+      "customer_name": "Bravo Supermarkets New Brunswick",
+      "address": "334 Livingston Ave, New Brunswick, NJ",
+      "lat": 40.4820,
+      "lng": -74.4450,
+      "time_window": {"earliest": "09:30", "latest": "12:00"},
+      "service_time_min": 25,
+      "dock_restrictions": {"max_trailer_len": "46W", "liftgate_required": true},
+      "demand": {
+        "frozen": {"pallets": 2, "cube_ft3": 140, "cases": 75, "weight_lbs": 2300},
+        "chill": {"pallets": 3, "cube_ft3": 210, "cases": 110, "weight_lbs": 3200},
+        "ambient": {"pallets": 2, "cube_ft3": 140, "cases": 90, "weight_lbs": 2200}
+      }
+    },
+    {
+      "order_id": "ORD-1010",
+      "customer_id": "CUST-STATENISLAND",
+      "customer_name": "Stop & Shop Staten Island",
+      "address": "275 Richmond Ave, Staten Island, NY",
+      "lat": 40.6360,
+      "lng": -74.1370,
+      "time_window": {"earliest": "06:30", "latest": "09:00"},
+      "service_time_min": 35,
+      "dock_restrictions": {"max_trailer_len": "53W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 4, "cube_ft3": 280, "cases": 160, "weight_lbs": 4700},
+        "chill": {"pallets": 4, "cube_ft3": 280, "cases": 170, "weight_lbs": 5000},
+        "ambient": {"pallets": 4, "cube_ft3": 280, "cases": 180, "weight_lbs": 4400}
+      }
+    },
+    {
+      "order_id": "ORD-1011",
+      "customer_id": "CUST-BROOKLYN-1",
+      "customer_name": "Wegmans Brooklyn Navy Yard",
+      "address": "21 Flushing Ave, Brooklyn, NY",
+      "lat": 40.6985,
+      "lng": -73.9780,
+      "time_window": {"earliest": "08:00", "latest": "10:30"},
+      "service_time_min": 40,
+      "dock_restrictions": {"max_trailer_len": "48W", "liftgate_required": false},
+      "demand": {
+        "frozen": {"pallets": 3, "cube_ft3": 210, "cases": 130, "weight_lbs": 3800},
+        "chill": {"pallets": 5, "cube_ft3": 350, "cases": 210, "weight_lbs": 6200},
+        "ambient": {"pallets": 4, "cube_ft3": 280, "cases": 170, "weight_lbs": 4300}
+      }
+    },
+    {
+      "order_id": "ORD-1012",
+      "customer_id": "CUST-QUEENS-1",
+      "customer_name": "Key Food Supermarkets Astoria",
+      "address": "22-15 31st St, Queens, NY",
+      "lat": 40.7745,
+      "lng": -73.9125,
+      "time_window": {"earliest": "09:00", "latest": "11:30"},
+      "service_time_min": 30,
+      "dock_restrictions": {"max_trailer_len": "46W", "liftgate_required": true},
+      "demand": {
+        "frozen": {"pallets": 2, "cube_ft3": 140, "cases": 80, "weight_lbs": 2600},
+        "chill": {"pallets": 3, "cube_ft3": 210, "cases": 120, "weight_lbs": 3500},
+        "ambient": {"pallets": 3, "cube_ft3": 210, "cases": 130, "weight_lbs": 3100}
+      }
+    }
+  ]
+}

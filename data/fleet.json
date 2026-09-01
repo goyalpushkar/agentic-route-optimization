@@ -1,0 +1,64 @@
+{
+  "fleet_inventory": [
+    {
+      "trailer_id": "TRL-5301",
+      "model": "53W Multi-Temp Reefer",
+      "length_ft": 53,
+      "max_pallets": 28,
+      "max_cube_ft3": 3800,
+      "max_payload_lbs": 44000,
+      "zones_supported": ["Frozen", "Chill", "Ambient"],
+      "bulkhead_type": "Movable Insulated Slider",
+      "bulkhead_step_pallets": 2,
+      "liftgate_equipped": false,
+      "hourly_operating_cost": 85.0,
+      "cost_per_mile": 2.45,
+      "status": "AVAILABLE"
+    },
+    {
+      "trailer_id": "TRL-4801",
+      "model": "48W Multi-Temp Reefer",
+      "length_ft": 48,
+      "max_pallets": 24,
+      "max_cube_ft3": 3200,
+      "max_payload_lbs": 38000,
+      "zones_supported": ["Frozen", "Chill", "Ambient"],
+      "bulkhead_type": "Movable Insulated Slider",
+      "bulkhead_step_pallets": 2,
+      "liftgate_equipped": false,
+      "hourly_operating_cost": 75.0,
+      "cost_per_mile": 2.20,
+      "status": "AVAILABLE"
+    },
+    {
+      "trailer_id": "TRL-4601",
+      "model": "46W City-Reefer",
+      "length_ft": 46,
+      "max_pallets": 20,
+      "max_cube_ft3": 2600,
+      "max_payload_lbs": 32000,
+      "zones_supported": ["Frozen", "Chill", "Ambient"],
+      "bulkhead_type": "Movable Insulated Slider",
+      "bulkhead_step_pallets": 2,
+      "liftgate_equipped": true,
+      "hourly_operating_cost": 70.0,
+      "cost_per_mile": 1.95,
+      "status": "AVAILABLE"
+    },
+    {
+      "trailer_id": "TRL-5302",
+      "model": "53W Multi-Temp Reefer",
+      "length_ft": 53,
+      "max_pallets": 30,
+      "max_cube_ft3": 4000,
+      "max_payload_lbs": 45000,
+      "zones_supported": ["Frozen", "Chill", "Ambient"],
+      "bulkhead_type": "Movable Insulated Slider",
+      "bulkhead_step_pallets": 2,
+      "liftgate_equipped": false,
+      "hourly_operating_cost": 88.0,
+      "cost_per_mile": 2.50,
+      "status": "AVAILABLE"
+    }
+  ]
+}

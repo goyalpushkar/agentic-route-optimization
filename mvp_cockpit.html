@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autonomous Multi-Agent Grocery Route & Carrier Engine | Executive MVP</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Leaflet CSS & JS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- SortableJS for Drag-and-Drop -->
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            900: '#0b0f19',
+                            800: '#111827',
+                            700: '#1f2937',
+                            600: '#374151'
+                        },
+                        brand: {
+                            blue: '#3b82f6',
+                            cyan: '#06b6d4',
+                            emerald: '#10b981',
+                            amber: '#f59e0b',
+                            rose: '#f43f5e',
+                            purple: '#8b5cf6'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .mono {
+            font-family: 'JetBrains Mono', monospace;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111827;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        .leaflet-container {
+            background-color: #0b0f19 !important;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.3); opacity: 0.2; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .pulse-beacon {
+            animation: pulse-ring 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="bg-dark-900 text-slate-100 min-h-screen flex flex-col antialiased">
+
+    <!-- Top Executive Header -->
+    <header class="bg-dark-800 border-b border-dark-700/80 px-6 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50 backdrop-blur-md bg-opacity-95">
+        <div class="flex items-center space-x-4">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                <i data-lucide="sparkles" class="w-5 h-5 text-white"></i>
+            </div>
+            <div>
+                <div class="flex items-center space-x-2">
+                    <h1 class="text-lg font-bold tracking-tight text-white">Autonomous Multi-Agent Cold-Chain Engine</h1>
+                    <span class="px-2 py-0.5 rounded-full text-xs font-semibold bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">MVP Demonstrator</span>
+                </div>
+                <p class="text-xs text-slate-400 flex items-center gap-2">
+                    <span>MC-VRPTW Routing</span> • <span>Dynamic Bulkheads</span> • <span>40/30/20/10 Carrier MCDA</span> • <span>WMS Sync</span>
+                </p>
+            </div>
+        </div>
+
+        <!-- Live Metrics Bar -->
+        <div class="flex items-center space-x-6 text-xs bg-dark-900/80 px-4 py-2 rounded-xl border border-dark-700">
+            <div>
+                <span class="text-slate-400">Total Demand:</span>
+                <span class="font-bold text-white ml-1.5" id="header-pallets">118 Plts (137.3k lbs)</span>
+            </div>
+            <div class="h-4 w-px bg-dark-700"></div>
+            <div>
+                <span class="text-slate-400">Cube Fill:</span>
+                <span class="font-bold text-emerald-400 ml-1.5" id="header-cube">93.2%</span>
+                <span class="text-[10px] text-emerald-500 font-semibold">(+14.7% vs Legacy)</span>
+            </div>
+            <div class="h-4 w-px bg-dark-700"></div>
+            <div>
+                <span class="text-slate-400">Freight Spend:</span>
+                <span class="font-bold text-cyan-400 ml-1.5" id="header-spend">$1,193.85</span>
+                <span class="text-[10px] text-cyan-500 font-semibold">(-15.9%)</span>
+            </div>
+        </div>
+
+        <!-- Action Controls -->
+        <div class="flex items-center space-x-3">
+            <button onclick="toggleLegacyComparison()" id="legacy-toggle-btn" class="px-3.5 py-2 rounded-lg bg-dark-700 hover:bg-dark-600 text-xs font-medium text-slate-200 border border-dark-600 transition flex items-center gap-2">
+                <i data-lucide="git-compare" class="w-4 h-4 text-amber-400"></i>
+                <span>Compare vs Manhattan TMS</span>
+            </button>
+            <button onclick="openAgentInspector()" class="px-3.5 py-2 rounded-lg bg-dark-700 hover:bg-dark-600 text-xs font-medium text-slate-200 border border-dark-600 transition flex items-center gap-2">
+                <i data-lucide="bot" class="w-4 h-4 text-purple-400"></i>
+                <span>Inspect 6 Agents</span>
+            </button>
+            <button onclick="runOptimizationPipeline()" class="px-4 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-xs font-bold text-white shadow-lg shadow-cyan-500/25 transition flex items-center gap-2">
+                <i data-lucide="play" class="w-4 h-4 fill-white"></i>
+                <span>Re-Run AI Swarm</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Workspace -->
+    <main class="flex-1 grid grid-cols-12 gap-4 p-4 max-w-[1920px] mx-auto w-full overflow-hidden">
+
+        <!-- LEFT COLUMN: Agent Collaboration Center & Route Sequencer (5 cols) -->
+        <section class="col-span-12 lg:col-span-5 flex flex-col gap-4 overflow-hidden h-full">
+            
+            <!-- Agent Thought & Activity Stream (Live Terminal) -->
+            <div class="bg-dark-800 rounded-2xl border border-dark-700 p-4 shadow-xl flex flex-col h-[230px] flex-shrink-0">
+                <div class="flex items-center justify-between pb-2 border-b border-dark-700">
+                    <div class="flex items-center space-x-2">
+                        <span class="relative flex h-2.5 w-2.5">
+                            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                        </span>
+                        <h2 class="text-xs font-bold tracking-wider text-slate-200 uppercase">Multi-Agent Thought & Collaboration Stream</h2>
+                    </div>
+                    <span class="text-[10px] mono text-slate-400 bg-dark-900 px-2 py-0.5 rounded border border-dark-700">Sub-300ms Agent Mesh</span>
+                </div>
+
+                <!-- Agent Status Badges -->
+                <div class="grid grid-cols-6 gap-1 py-1.5 border-b border-dark-700/60">
+                    <button onclick="inspectSpecificAgent(1)" class="flex flex-col items-center p-1 rounded bg-dark-900/60 border border-cyan-500/30 hover:border-cyan-400 transition text-center cursor-pointer" title="Demand Profiler">
+                        <span class="text-[9px] font-bold text-cyan-400">Agent 1</span>
+                        <span class="text-[8px] text-slate-400 truncate w-full">Demand</span>
+                    </button>
+                    <button onclick="switchView('bulkhead')" class="flex flex-col items-center p-1 rounded bg-dark-900/60 border border-purple-500/30 hover:border-purple-400 transition text-center cursor-pointer" title="View 2D Bulkhead Allocations">
+                        <span class="text-[9px] font-bold text-purple-400">Agent 2</span>
+                        <span class="text-[8px] text-slate-400 truncate w-full">Fleet</span>
+                    </button>
+                    <button onclick="switchView('map')" class="flex flex-col items-center p-1 rounded bg-dark-900/60 border border-blue-500/30 hover:border-blue-400 transition text-center cursor-pointer" title="View Route Map">
+                        <span class="text-[9px] font-bold text-blue-400">Agent 3</span>
+                        <span class="text-[8px] text-slate-400 truncate w-full">Router</span>
+                    </button>
+                    <button onclick="switchView('auction')" class="flex flex-col items-center p-1 rounded bg-dark-900/60 border border-amber-500/30 hover:border-amber-400 transition text-center cursor-pointer" title="View Carrier Rate Auction">
+                        <span class="text-[9px] font-bold text-amber-400">Agent 4</span>
+                        <span class="text-[8px] text-slate-400 truncate w-full">Rates</span>
+                    </button>
+                    <button onclick="switchView('auction')" class="flex flex-col items-center p-1 rounded bg-dark-900/60 border border-emerald-500/30 hover:border-emerald-400 transition text-center cursor-pointer" title="View 40/30/20/10 Carrier MCDA">
+                        <span class="text-[9px] font-bold text-emerald-400">Agent 5</span>
+                        <span class="text-[8px] text-slate-400 truncate w-full">MCDA</span>
+                    </button>
+                    <button onclick="switchView('map')" class="flex flex-col items-center p-1 rounded bg-dark-900/60 border border-rose-500/30 hover:border-rose-400 transition text-center cursor-pointer" title="View IoT Telematics Map">
+                        <span class="text-[9px] font-bold text-rose-400">Agent 6</span>
+                        <span class="text-[8px] text-slate-400 truncate w-full">IoT Tele</span>
+                    </button>
+                </div>
+
+                <!-- Stream Output Box -->
+                <div id="agent-thought-logs" class="flex-1 overflow-y-auto custom-scrollbar mono text-[11px] p-2 space-y-1.5 text-slate-300 bg-dark-900/80 rounded-lg mt-1.5">
+                    <!-- Dynamic logs will be injected here -->
+                </div>
+            </div>
+
+            <!-- HITL Drag-and-Drop Route Manifests -->
+            <div class="bg-dark-800 rounded-2xl border border-dark-700 p-4 shadow-xl flex-1 flex flex-col overflow-hidden min-h-0">
+                <div class="flex items-center justify-between pb-2.5 border-b border-dark-700 flex-shrink-0">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+                        <h2 class="text-xs font-bold tracking-wider text-slate-200 uppercase">Human-in-the-Loop Stop Sequencer</h2>
+                    </div>
+                    <span class="text-[10px] text-slate-400">Drag stops to reorder & instant recalculate</span>
+                </div>
+
+                <!-- Plan Comparison Widget (AI Optimal vs Dispatcher Modified) -->
+                <div id="plan-comparison-card" class="bg-dark-900/90 rounded-xl p-3 border border-dark-700 mt-2.5 flex-shrink-0 transition-all duration-300">
+                    <div class="flex items-center justify-between pb-2 border-b border-dark-700/70">
+                        <div class="flex items-center space-x-2">
+                            <span id="plan-status-badge" class="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">✨ AI OPTIMAL PLAN</span>
+                            <span id="plan-violation-badge" class="hidden px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">⚠️ 0 Violations</span>
+                        </div>
+                        <button id="revert-plan-btn" onclick="revertToAiPlan()" class="hidden text-[11px] text-amber-400 hover:text-amber-300 font-semibold flex items-center gap-1 bg-amber-500/10 hover:bg-amber-500/20 px-2 py-0.5 rounded border border-amber-500/30 transition cursor-pointer">
+                            <i data-lucide="rotate-ccw" class="w-3 h-3"></i> <span>Revert to AI Plan</span>
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-2 mt-2 text-center text-xs">
+                        <div class="bg-dark-800 p-2 rounded-lg border border-dark-700">
+                            <span class="text-[10px] text-slate-400 block">Total Distance</span>
+                            <div class="font-bold text-white text-xs mt-0.5" id="comp-total-miles">184.5 mi</div>
+                            <div class="text-[9px] font-semibold mt-0.5 text-slate-500" id="comp-delta-miles">AI Baseline</div>
+                        </div>
+                        <div class="bg-dark-800 p-2 rounded-lg border border-dark-700">
+                            <span class="text-[10px] text-slate-400 block">Total Duration</span>
+                            <div class="font-bold text-white text-xs mt-0.5" id="comp-total-time">7h 48m</div>
+                            <div class="text-[9px] font-semibold mt-0.5 text-slate-500" id="comp-delta-time">AI Baseline</div>
+                        </div>
+                        <div class="bg-dark-800 p-2 rounded-lg border border-dark-700">
+                            <span class="text-[10px] text-slate-400 block">Freight Spend</span>
+                            <div class="font-bold text-emerald-400 text-xs mt-0.5" id="comp-total-cost">$1,193.85</div>
+                            <div class="text-[9px] font-semibold mt-0.5 text-slate-500" id="comp-delta-cost">AI Baseline</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="routes-container" class="flex-1 overflow-y-auto custom-scrollbar space-y-3 pt-2.5 min-h-0">
+                    <!-- Route Cards will be rendered dynamically -->
+                </div>
+            </div>
+        </section>
+
+        <!-- RIGHT COLUMN: Dedicated Unified Workspace (Map, Carrier Auction, Bulkhead) (7 cols) -->
+        <section class="col-span-12 lg:col-span-7 flex flex-col overflow-hidden h-full">
+            <div class="bg-dark-800 rounded-2xl border border-dark-700 p-4 shadow-xl flex-1 flex flex-col overflow-hidden">
+                
+                <!-- Tab Navigation Header -->
+                <div class="flex items-center justify-between pb-3 border-b border-dark-700 flex-shrink-0">
+                    <div class="flex items-center space-x-2 sm:space-x-5">
+                        <button onclick="switchView('map')" id="tab-map" class="text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1.5 flex items-center gap-1.5 transition cursor-pointer">
+                            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i>
+                            <span>Live Route Map</span>
+                        </button>
+                        <button onclick="switchView('auction')" id="tab-auction" class="text-xs font-bold text-slate-400 hover:text-slate-200 pb-1.5 flex items-center gap-1.5 transition cursor-pointer">
+                            <i data-lucide="award" class="w-3.5 h-3.5 text-emerald-400"></i>
+                            <span>Live Carrier Rate Auction & MCDA</span>
+                            <span class="px-1.5 py-0.5 rounded text-[9px] font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">4 Bids Live</span>
+                        </button>
+                        <button onclick="switchView('bulkhead')" id="tab-bulkhead" class="text-xs font-bold text-slate-400 hover:text-slate-200 pb-1.5 flex items-center gap-1.5 transition cursor-pointer">
+                            <i data-lucide="sliders" class="w-3.5 h-3.5 text-purple-400"></i>
+                            <span>2D Bulkhead & Staging</span>
+                        </button>
+                    </div>
+
+                    <!-- Dynamic Top Right Indicator based on Active Tab -->
+                    <div id="tab-indicator-map" class="flex items-center space-x-3 text-[11px]">
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-cyan-400"></span> ❄️ Frozen (-10°F)</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-emerald-400"></span> 🥦 Chill (+36°F)</span>
+                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-amber-400"></span> 🥫 Ambient</span>
+                    </div>
+                    <div id="tab-indicator-auction" class="hidden flex items-center space-x-2 text-[10px]">
+                        <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">40/30/20/10 Weighted MCDA</span>
+                        <span class="px-2 py-0.5 rounded bg-dark-900 border border-dark-700 text-cyan-400 mono">280ms RFQ Broadcast</span>
+                    </div>
+                    <div id="tab-indicator-bulkhead" class="hidden flex items-center space-x-2 text-[10px]">
+                        <span class="px-2 py-0.5 rounded bg-purple-500/10 text-purple-400 border border-purple-500/20 font-semibold">2-Pallet Movable Steps</span>
+                    </div>
+                </div>
+
+                <!-- TAB 1: Live Route Map View (Full Panoramic Workspace) -->
+                <div id="map-view-container" class="flex-1 relative rounded-xl overflow-hidden mt-3 z-0 min-h-0">
+                    <div id="map" class="w-full h-full z-0"></div>
+                </div>
+
+                <!-- TAB 2: Live Carrier Rate Auction & 40/30/20/10 MCDA (Spacious & Readable Dashboard) -->
+                <div id="auction-view-container" class="hidden flex-1 flex flex-col mt-3 overflow-y-auto custom-scrollbar min-h-0 space-y-4 pr-1">
+                    
+                    <!-- Auction Live Summary Card -->
+                    <div id="auction-summary-header" class="bg-dark-900/90 rounded-xl p-4 border border-dark-700 shadow-md">
+                        <!-- Populated dynamically by renderCarriers() -->
+                    </div>
+
+                    <!-- 4 Spacious Carrier Bid Cards (2x2 Grid) -->
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <h3 class="text-xs font-bold text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+                                <i data-lucide="radio" class="w-3.5 h-3.5 text-cyan-400 animate-pulse"></i>
+                                <span>Real-Time Carrier Quotes & Multi-Criteria Decision Breakdown</span>
+                            </h3>
+                            <span class="text-[10px] text-slate-400">Click any eligible bid to manually override tender</span>
+                        </div>
+                        <div id="carrier-board" class="grid grid-cols-1 md:grid-cols-2 gap-3.5">
+                            <!-- Carrier Cards Injected Dynamically by JavaScript -->
+                        </div>
+                    </div>
+
+                    <!-- Transparent 40/30/20/10 MCDA Decision Matrix Table -->
+                    <div class="bg-dark-900/90 rounded-xl p-4 border border-dark-700">
+                        <div class="flex items-center justify-between mb-3 pb-2 border-b border-dark-700/80">
+                            <div>
+                                <h3 class="text-xs font-bold text-white flex items-center gap-2">
+                                    <i data-lucide="table" class="w-3.5 h-3.5 text-purple-400"></i>
+                                    <span>MCDA Scoring Evaluation Matrix</span>
+                                </h3>
+                                <p class="text-[11px] text-slate-400 mt-0.5">Objective multi-dimensional score formula: (Rate × 40%) + (Reliability × 30%) + (Temp SLA × 20%) + (Fleet Preference × 10%)</p>
+                            </div>
+                            <span class="text-[10px] px-2 py-0.5 rounded bg-dark-800 text-slate-300 border border-dark-700">Sub-300ms Automated Tender</span>
+                        </div>
+
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="text-[10px] text-slate-400 uppercase tracking-wider border-b border-dark-700">
+                                        <th class="pb-2 font-semibold">Carrier / Partner</th>
+                                        <th class="pb-2 font-semibold">Fleet Tier</th>
+                                        <th class="pb-2 font-semibold text-right">Freight Rate</th>
+                                        <th class="pb-2 font-semibold text-right">Rate (40%)</th>
+                                        <th class="pb-2 font-semibold text-right">On-Time (30%)</th>
+                                        <th class="pb-2 font-semibold text-right">Temp SLA (20%)</th>
+                                        <th class="pb-2 font-semibold text-right">Pref (10%)</th>
+                                        <th class="pb-2 font-semibold text-right">Composite</th>
+                                        <th class="pb-2 font-semibold text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="mcda-table-body" class="divide-y divide-dark-800">
+                                    <!-- Injected Dynamically by JavaScript -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- TAB 3: 2D Bulkhead & Staging Visualizer -->
+                <div id="bulkhead-view-container" class="hidden flex-1 flex flex-col mt-3 p-4 bg-dark-900/90 rounded-xl border border-dark-700 overflow-y-auto custom-scrollbar min-h-0">
+                    <div class="flex items-center justify-between mb-3">
+                        <div>
+                            <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                                <span id="active-trailer-label">TRL-5301 (53W Multi-Temp Reefer)</span>
+                                <span class="px-2 py-0.5 rounded text-[10px] font-semibold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30">2-Pallet Movable Steps</span>
+                            </h3>
+                            <p class="text-xs text-slate-400">Drag sliders to adjust insulated bulkheads. LIFO reverse-drop staging validated in real time.</p>
+                        </div>
+                        <div class="text-right">
+                            <span class="text-xs text-slate-400">Pallet Capacity:</span>
+                            <span class="text-sm font-bold text-emerald-400 ml-1" id="bulkhead-loaded-stat">28 / 28 Plts (100% Full)</span>
+                        </div>
+                    </div>
+
+                    <!-- Visual 2D Trailer Floorplan Canvas -->
+                    <div class="w-full bg-dark-800 rounded-xl p-4 border border-dark-700 flex flex-col gap-3">
+                        <div class="flex items-center justify-between text-[11px] font-semibold">
+                            <span class="text-cyan-400">FRONT (Nose Reefer Unit -10°F)</span>
+                            <span class="text-slate-400">INSULATED MOVABLE BULKHEADS</span>
+                            <span class="text-amber-400">REAR (Roll-up Door / Liftgate)</span>
+                        </div>
+
+                        <!-- Trailer Pallet Grid Visualizer -->
+                        <div id="trailer-grid" class="grid grid-cols-14 gap-1.5 h-24 p-2 bg-dark-900 rounded-lg border border-dark-600">
+                            <!-- Injected by JavaScript -->
+                        </div>
+
+                        <!-- Interactive Bulkhead Slider Controls -->
+                        <div class="grid grid-cols-2 gap-4 mt-2 pt-2 border-t border-dark-700">
+                            <div>
+                                <label class="text-xs text-slate-300 flex justify-between">
+                                    <span>Frozen Compartment (Zone A)</span>
+                                    <span class="font-bold text-cyan-400" id="slider-frozen-val">12 Pallets</span>
+                                </label>
+                                <input type="range" id="slider-frozen" min="4" max="18" step="2" value="12" oninput="updateBulkheadSlider()" class="w-full h-1.5 bg-dark-700 rounded-lg appearance-none cursor-pointer accent-cyan-400 mt-1">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 flex justify-between">
+                                    <span>Chill Compartment (Zone B)</span>
+                                    <span class="font-bold text-emerald-400" id="slider-chill-val">14 Pallets</span>
+                                </label>
+                                <input type="range" id="slider-chill" min="4" max="18" step="2" value="14" oninput="updateBulkheadSlider()" class="w-full h-1.5 bg-dark-700 rounded-lg appearance-none cursor-pointer accent-emerald-400 mt-1">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-3 flex items-center justify-between bg-dark-800 p-2.5 rounded-lg text-xs">
+                        <div class="flex items-center gap-2">
+                            <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="text-slate-300 font-medium">LIFO Staging Verification:</span>
+                            <span class="text-emerald-400">Passed (Zero Pallet Double-Handling)</span>
+                        </div>
+                        <span class="text-slate-400 text-[11px]">Unloading Time Saved: <strong>~35 min per route</strong></span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Legacy Comparison Modal -->
+    <div id="legacy-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 99999;">
+        <div class="bg-dark-800 rounded-2xl border border-dark-700 max-w-3xl w-full p-6 shadow-2xl relative z-10">
+            <div class="flex items-center justify-between pb-4 border-b border-dark-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center">
+                        <i data-lucide="trending-up" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Executive ROI Benchmark: AI Engine vs Legacy TMS</h3>
+                        <p class="text-xs text-slate-400">Side-by-side comparison with Manhattan TMS & Manugistics</p>
+                    </div>
+                </div>
+                <button onclick="toggleLegacyComparison()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mt-6">
+                <!-- Legacy Column -->
+                <div class="bg-dark-900/90 rounded-xl p-4 border border-rose-500/30">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-rose-400 uppercase">Legacy Manhattan / Manugistics</span>
+                        <span class="text-[10px] bg-rose-500/10 text-rose-400 px-2 py-0.5 rounded">Static Rules</span>
+                    </div>
+                    <ul class="space-y-3 text-xs text-slate-300">
+                        <li class="flex justify-between"><span>Multi-Temp Packing:</span> <strong class="text-rose-400">Fixed Rigid Partition</strong></li>
+                        <li class="flex justify-between"><span>Average Cube Fill:</span> <strong class="text-rose-400">78.5%</strong></li>
+                        <li class="flex justify-between"><span>Total Fleet Miles:</span> <strong class="text-rose-400">248.0 mi</strong></li>
+                        <li class="flex justify-between"><span>Weekly Freight Cost:</span> <strong class="text-rose-400">$115,800</strong></li>
+                        <li class="flex justify-between"><span>Batch Optimization Time:</span> <strong class="text-rose-400">45+ Minutes</strong></li>
+                        <li class="flex justify-between"><span>Dispatcher Adjustments:</span> <strong class="text-rose-400">Static Printouts</strong></li>
+                    </ul>
+                </div>
+
+                <!-- AI Engine Column -->
+                <div class="bg-dark-900/90 rounded-xl p-4 border border-emerald-500/40">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-bold text-emerald-400 uppercase">Autonomous Multi-Agent Engine</span>
+                        <span class="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-0.5 rounded">Dynamic AI</span>
+                    </div>
+                    <ul class="space-y-3 text-xs text-slate-300">
+                        <li class="flex justify-between"><span>Multi-Temp Packing:</span> <strong class="text-emerald-400">Dynamic 2-Pallet Bulkhead</strong></li>
+                        <li class="flex justify-between"><span>Average Cube Fill:</span> <strong class="text-emerald-400">93.2% (+14.7%)</strong></li>
+                        <li class="flex justify-between"><span>Total Fleet Miles:</span> <strong class="text-emerald-400">184.5 mi (-25.6%)</strong></li>
+                        <li class="flex justify-between"><span>Weekly Freight Cost:</span> <strong class="text-emerald-400">$97,400 (-$18,400/wk)</strong></li>
+                        <li class="flex justify-between"><span>Batch Optimization Time:</span> <strong class="text-emerald-400">Sub-300ms</strong></li>
+                        <li class="flex justify-between"><span>Dispatcher Adjustments:</span> <strong class="text-emerald-400">Drag-and-Drop Live Recalc</strong></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="mt-6 p-4 rounded-xl bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-emerald-500/30 flex items-center justify-between">
+                <div>
+                    <h4 class="text-sm font-bold text-white">Projected Annual Savings for 50-Truck Fleet:</h4>
+                    <p class="text-xs text-slate-300">$956,800 fuel & freight savings + 14.7% more grocery volume per trailer</p>
+                </div>
+                <span class="text-xl font-extrabold text-emerald-400">$956,800 / yr</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Agent Inspector Modal -->
+    <div id="agent-modal" class="hidden fixed inset-0 bg-black/85 backdrop-blur-md flex items-center justify-center p-4" style="z-index: 99999;">
+        <div class="bg-dark-800 rounded-2xl border border-dark-700 max-w-4xl w-full p-6 shadow-2xl max-h-[85vh] flex flex-col relative z-10">
+            <div class="flex items-center justify-between pb-4 border-b border-dark-700">
+                <div class="flex items-center space-x-3">
+                    <div class="w-9 h-9 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+                        <i data-lucide="bot" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white" id="modal-agent-title">Agent Architecture & Reasoning Inspector</h3>
+                        <p class="text-xs text-slate-400" id="modal-agent-role">Inspect autonomous prompts, active tools, and decision logic</p>
+                    </div>
+                </div>
+                <button onclick="closeAgentInspector()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar mt-4 space-y-4">
+                <div class="bg-dark-900 rounded-xl p-4 border border-dark-700">
+                    <span class="text-xs font-bold text-cyan-400 uppercase tracking-wider">System Prompt</span>
+                    <p class="text-xs text-slate-300 mt-1.5 mono leading-relaxed" id="modal-agent-prompt"></p>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-dark-900 rounded-xl p-4 border border-dark-700">
+                        <span class="text-xs font-bold text-purple-400 uppercase tracking-wider">Active Tools & Capabilities</span>
+                        <ul class="text-xs text-slate-300 mt-2 space-y-1.5" id="modal-agent-tools"></ul>
+                    </div>
+                    <div class="bg-dark-900 rounded-xl p-4 border border-dark-700">
+                        <span class="text-xs font-bold text-emerald-400 uppercase tracking-wider">Output Decision Artifacts</span>
+                        <ul class="text-xs text-slate-300 mt-2 space-y-1.5" id="modal-agent-outputs"></ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script>
+        // State
+        let map, markers = [], routePolylines = [];
+        let currentView = 'map';
+        let simulationRunning = false;
+
+        // Data
+        const dc = {
+            id: "DC-NEWARK",
+            name: "Newark Wholesale DC",
+            lat: 40.6925,
+            lng: -74.1687
+        };
+
+        let routesData = [
+            {
+                id: "Route-101",
+                name: "Route-101 (North NJ Route)",
+                trailer: "TRL-5301 (53W Reefer)",
+                color: "#06b6d4",
+                miles: 52.0,
+                cost: 419.23,
+                stops: [
+                    { id: "ORD-1001", name: "ShopRite of Hoboken", lat: 40.7512, lng: -74.0375, window: "06:00 - 08:30", eta: "06:15", pallets: 10, f: 3, c: 4, a: 3 },
+                    { id: "ORD-1002", name: "ACME Markets Jersey City", lat: 40.7335, lng: -74.0410, window: "07:00 - 09:30", eta: "07:05", pallets: 9, f: 2, c: 3, a: 4 },
+                    { id: "ORD-1003", name: "H Mart Fort Lee", lat: 40.8540, lng: -73.9680, window: "07:30 - 10:00", eta: "08:00", pallets: 8, f: 4, c: 2, a: 2 },
+                    { id: "ORD-1004", name: "Whole Foods Paramus", lat: 40.9168, lng: -74.0725, window: "08:00 - 10:30", eta: "08:50", pallets: 10, f: 2, c: 5, a: 3 }
+                ]
+            },
+            {
+                id: "Route-102",
+                name: "Route-102 (Central & West NJ)",
+                trailer: "TRL-4801 (48W Reefer)",
+                color: "#ec4899",
+                miles: 89.5,
+                cost: 580.65,
+                stops: [
+                    { id: "ORD-1005", name: "Trader Joe's Clifton", lat: 40.8615, lng: -74.1485, window: "06:30 - 09:00", eta: "06:20", pallets: 9, f: 3, c: 3, a: 3 },
+                    { id: "ORD-1006", name: "Super Foodtown Paterson", lat: 40.9180, lng: -74.1560, window: "09:00 - 11:30", eta: "07:10", pallets: 7, f: 2, c: 2, a: 3 },
+                    { id: "ORD-1007", name: "Wegmans Woodbridge", lat: 40.5560, lng: -74.3015, window: "07:00 - 09:30", eta: "08:15", pallets: 16, f: 5, c: 6, a: 5 },
+                    { id: "ORD-1008", name: "H Mart Edison", lat: 40.5180, lng: -74.3980, window: "08:30 - 11:00", eta: "09:10", pallets: 10, f: 3, c: 4, a: 3 },
+                    { id: "ORD-1009", name: "Bravo Supermarkets NB", lat: 40.4820, lng: -74.4450, window: "09:30 - 12:00", eta: "10:00", pallets: 7, f: 2, c: 3, a: 2 }
+                ]
+            },
+            {
+                id: "Route-103",
+                name: "Route-103 (Metro NYC Route)",
+                trailer: "TRL-4601 (46W City Reefer)",
+                color: "#eab308",
+                miles: 43.0,
+                cost: 291.52,
+                stops: [
+                    { id: "ORD-1010", name: "Stop & Shop Staten Island", lat: 40.6360, lng: -74.1370, window: "06:30 - 09:00", eta: "06:25", pallets: 12, f: 4, c: 4, a: 4 },
+                    { id: "ORD-1011", name: "Wegmans Brooklyn Navy Yard", lat: 40.6985, lng: -73.9780, window: "08:00 - 10:30", eta: "07:35", pallets: 12, f: 3, c: 5, a: 4 },
+                    { id: "ORD-1012", name: "Key Food Astoria", lat: 40.7745, lng: -73.9125, window: "09:00 - 11:30", eta: "08:30", pallets: 8, f: 2, c: 3, a: 3 }
+                ]
+            }
+        ];
+
+        const carriers = [
+            {
+                id: "CAR-001",
+                name: "Swift Cold-Chain Logistics",
+                tier: "Tier-1 Preferred Contracted",
+                tierBadge: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30",
+                rate: 366.60,
+                cpm: 7.05,
+                linehaul: 280.00,
+                fuelSurcharge: 56.60,
+                accessorials: 30.00,
+                equipment: "53' Multi-Temp Reefer (-20°F to 65°F Dual Zone)",
+                historicalOnTime: "98.3% On-Time",
+                fsmaCompliance: "100% FSMA SLA",
+                score: 89.8,
+                rateScore: 30.3,
+                relScore: 29.5,
+                slaScore: 20.0,
+                prefScore: 10.0,
+                ediStatus: "EDI 204 Transmitted • Wave Released (Bay 04)",
+                awarded: true
+            },
+            {
+                id: "CAR-002",
+                name: "Prime Inc Multi-Temp",
+                tier: "Tier-1 Preferred Contracted",
+                tierBadge: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
+                rate: 375.00,
+                cpm: 7.21,
+                linehaul: 290.00,
+                fuelSurcharge: 55.00,
+                accessorials: 30.00,
+                equipment: "53' Multi-Temp Reefer (Carrier Transicold)",
+                historicalOnTime: "95.0% On-Time",
+                fsmaCompliance: "100% FSMA SLA",
+                score: 87.2,
+                rateScore: 29.2,
+                relScore: 28.5,
+                slaScore: 20.0,
+                prefScore: 9.5,
+                ediStatus: "Ready for Tender Transmission",
+                awarded: false
+            },
+            {
+                id: "CAR-003",
+                name: "C.H. Robinson Dedicated",
+                tier: "Tier-2 Secondary Partner",
+                tierBadge: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
+                rate: 382.40,
+                cpm: 7.35,
+                linehaul: 295.00,
+                fuelSurcharge: 57.40,
+                accessorials: 30.00,
+                equipment: "48' Multi-Temp Reefer with Liftgate",
+                historicalOnTime: "91.7% On-Time",
+                fsmaCompliance: "100% FSMA SLA",
+                score: 82.5,
+                rateScore: 28.0,
+                relScore: 27.5,
+                slaScore: 20.0,
+                prefScore: 7.0,
+                ediStatus: "Ready for Tender Transmission",
+                awarded: false
+            },
+            {
+                id: "CAR-004",
+                name: "DAT Spot Board Carrier",
+                tier: "Spot Unvetted",
+                tierBadge: "bg-rose-500/20 text-rose-400 border border-rose-500/30",
+                rate: 320.00,
+                cpm: 6.15,
+                linehaul: 250.00,
+                fuelSurcharge: 50.00,
+                accessorials: 20.00,
+                equipment: "Single-Temp Reefer (Cross-Temp Spoilage Risk)",
+                historicalOnTime: "82.0% (High Risk)",
+                fsmaCompliance: "50% (High Penalty)",
+                score: 68.4,
+                rateScore: 40.0,
+                relScore: 24.6,
+                slaScore: 10.0,
+                prefScore: 0.0,
+                ediStatus: "Disqualified (Temp Risk)",
+                awarded: false
+            }
+        ];
+
+        const agentDetails = {
+            1: {
+                title: "Agent 1: Demand & Order Profiler",
+                role: "4D Vector Slicing & Thermal Classification",
+                prompt: "You are the Demand Profiler Agent. Ingest raw wholesale order streams, slice orders into 4D volume vectors (Pallets, Cube, Cases, Weight), enforce 3 thermal regimes (-10°F Frozen, +36°F Chill, Ambient), and detect split-order candidates.",
+                tools: ["OrderStreamParser", "4DVectorCalculator", "ThermalRegimeClassifier", "OrderSplitDetector"],
+                outputs: ["ProfiledOrderManifest.json", "ThermalDemandMatrix", "SplitOrderAlerts"]
+            },
+            2: {
+                title: "Agent 2: Fleet & Dock Allocator",
+                role: "Trailer Equipment & Store Dock Compatibility",
+                prompt: "You are the Fleet Allocator Agent. Audit 46W, 48W, and 53W reefer availability. Match trailer turning radii and liftgate equipment against tight urban supermarket dock limits.",
+                tools: ["FleetInventoryQuery", "DockRestrictionValidator", "LiftgateMatcher"],
+                outputs: ["QualifiedVehicleMatrix", "DockConstraintManifest"]
+            },
+            3: {
+                title: "Agent 3: Cold-Chain Route Optimizer",
+                role: "Multi-Compartment VRPTW & Bulkhead Solver",
+                prompt: "You are the Cold-Chain Route Optimizer Agent. Formulate the Multi-Compartment VRP with Soft Time Windows (MC-VRPTW), adjust movable bulkheads in 2-pallet increments, and enforce LIFO reverse-drop staging.",
+                tools: ["MC_VRPTW_Solver", "BulkheadStepCalculator", "LIFOStagingValidator", "SoftWindowPenaltyEngine"],
+                outputs: ["OptimizedRouteManifest", "DynamicBulkheadLayout", "LIFOSequenceAudit"]
+            },
+            4: {
+                title: "Agent 4: Live Carrier Rate Aggregator",
+                role: "Parallel API Quoting & Rate Normalization",
+                prompt: "You are the Live Carrier Rate Aggregator Agent. Broadcast parallel RFQs to carrier endpoints in sub-3s latency. Normalize linehaul $/mile, fuel surcharges, and stop-off accessorial fees.",
+                tools: ["ParallelRFQBroadcaster", "FuelSurchargeNormalizer", "RateParser"],
+                outputs: ["LiveCarrierBidMatrix", "LinehaulBreakdown"]
+            },
+            5: {
+                title: "Agent 5: Carrier Scoring & Booking Decision",
+                role: "40/30/20/10 MCDA Engine & WMS Wave Release",
+                prompt: "You are the Carrier Decision Agent. Execute 40/30/20/10 Multi-Criteria Decision Analysis (Rate, Reliability, Temp SLA, Preferred Status). Generate EDI 204 load tender and emit WMS Wave Picking release trigger.",
+                tools: ["MCDAScoringEngine", "EDI204TenderGenerator", "WMSWaveTrigger"],
+                outputs: ["AwardedCarrierContract", "EDI_204_Payload", "WMS_Wave_Release_Token"]
+            },
+            6: {
+                title: "Agent 6: Dynamic Cold-Chain Telematics Monitor",
+                role: "IoT Thermistor Monitoring & Exception Rerouting",
+                prompt: "You are the Telematics Monitor Agent. Ingest real-time GPS coordinates and trailer compartment thermistors. Detect temperature spikes or traffic delays and broadcast automated ETA mitigations.",
+                tools: ["IoTTelemetryIngest", "TempExcursionDetector", "DynamicETARecalculator"],
+                outputs: ["LiveTelemetryFeed", "ProactiveExceptionAlerts"]
+            }
+        };
+
+        // Baseline Tracking State
+        let aiBaselineData = null;
+        let aiBaselineTotals = { miles: 184.5, timeMins: 468, cost: 1193.85, violations: 0 };
+        let isPlanModified = false;
+
+        // Initialize App
+        window.addEventListener('DOMContentLoaded', () => {
+            lucide.createIcons();
+            initMap();
+            initAiBaseline();
+            renderRoutes();
+            renderCarriers();
+            renderTrailerGrid();
+            runOptimizationPipeline();
+        });
+
+        // Haversine Distance Calculator with Urban Circuity
+        function haversineDistMiles(lat1, lon1, lat2, lon2) {
+            const R = 3958.8; // Earth radius in miles
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLon = (lon2 - lon1) * Math.PI / 180;
+            const a = 
+                Math.sin(dLat/2) * Math.sin(dLat/2) +
+                Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                Math.sin(dLon/2) * Math.sin(dLon/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return (R * c) * 1.25; // 1.25 Urban highway/city street circuity factor
+        }
+
+        function timeToMinutes(timeStr) {
+            if (!timeStr) return 0;
+            const parts = timeStr.trim().split(':');
+            return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+        }
+
+        function minutesToTime(mins) {
+            const h = Math.floor(mins / 60) % 24;
+            const m = Math.floor(mins % 60);
+            const hh = h < 10 ? '0' + h : '' + h;
+            const mm = m < 10 ? '0' + m : '' + m;
+            return `${hh}:${mm}`;
+        }
+
+        function formatDurationMinutes(mins) {
+            const h = Math.floor(mins / 60);
+            const m = Math.round(mins % 60);
+            return `${h}h ${m}m`;
+        }
+
+        // Comprehensive Route Metrics & ETA Engine
+        function recalculateAllRouteMetrics() {
+            routesData.forEach((route, rIdx) => {
+                if (!route.stops || route.stops.length === 0) {
+                    route.miles = 0;
+                    route.totalMinutes = 0;
+                    route.durationFormatted = "0h 0m";
+                    route.cost = 0;
+                    return;
+                }
+
+                let currentClock = 360; // 06:00 AM dispatch
+                let currLat = dc.lat;
+                let currLng = dc.lng;
+                let totalDist = 0;
+                let totalDriveMins = 0;
+                let totalDwellMins = 0;
+
+                route.stops.forEach((stop, sIdx) => {
+                    // Leg distance and drive time
+                    const legMiles = haversineDistMiles(currLat, currLng, stop.lat, stop.lng);
+                    const legDriveTime = Math.max(8, Math.round((legMiles / 24.0) * 60)); // 24 mph heavy reefer urban transit
+
+                    totalDist += legMiles;
+                    totalDriveMins += legDriveTime;
+                    const arrivalMins = currentClock + legDriveTime;
+                    stop.eta = minutesToTime(arrivalMins);
+
+                    // Parse delivery window
+                    if (stop.window && stop.window.includes('-')) {
+                        const winParts = stop.window.split('-').map(s => s.trim());
+                        const winStart = timeToMinutes(winParts[0]);
+                        const winEnd = timeToMinutes(winParts[1]);
+
+                        stop.isLate = (arrivalMins > winEnd);
+                        stop.lateMins = stop.isLate ? (arrivalMins - winEnd) : 0;
+                        stop.isEarly = (arrivalMins < winStart);
+                        stop.earlyMins = stop.isEarly ? (winStart - arrivalMins) : 0;
+
+                        // Dock service dwell time (12 min + 1.2 min per pallet)
+                        const dwellTime = 12 + Math.round((stop.pallets || 8) * 1.2);
+                        totalDwellMins += dwellTime;
+                        currentClock = Math.max(arrivalMins, winStart) + dwellTime;
+                    } else {
+                        stop.isLate = false;
+                        stop.lateMins = 0;
+                        stop.isEarly = false;
+                        const dwellTime = 20;
+                        totalDwellMins += dwellTime;
+                        currentClock = arrivalMins + dwellTime;
+                    }
+
+                    currLat = stop.lat;
+                    currLng = stop.lng;
+                });
+
+                // Return to DC leg
+                const returnMiles = haversineDistMiles(currLat, currLng, dc.lat, dc.lng);
+                const returnDriveMins = Math.max(10, Math.round((returnMiles / 26.0) * 60));
+                totalDist += returnMiles;
+                totalDriveMins += returnDriveMins;
+
+                route.miles = Math.round(totalDist * 10) / 10;
+                route.totalMinutes = Math.round(totalDriveMins + totalDwellMins);
+                route.durationFormatted = formatDurationMinutes(route.totalMinutes);
+                
+                // Realistic cost formula: $2.65/mi fuel & linehaul + $36.50/hr driver + $28 drop charge per stop
+                route.cost = Math.round((route.miles * 2.65 + (route.totalMinutes / 60) * 36.50 + route.stops.length * 28.00) * 100) / 100;
+            });
+        }
+
+        function computePlanTotals(data) {
+            let miles = 0, timeMins = 0, cost = 0, violations = 0;
+            data.forEach(r => {
+                miles += r.miles || 0;
+                timeMins += r.totalMinutes || 0;
+                cost += r.cost || 0;
+                if (r.stops) {
+                    r.stops.forEach(s => {
+                        if (s.isLate) violations++;
+                    });
+                }
+            });
+            return {
+                miles: Math.round(miles * 10) / 10,
+                timeMins: Math.round(timeMins),
+                cost: Math.round(cost * 100) / 100,
+                violations: violations
+            };
+        }
+
+        // Initialize and lock AI Baseline
+        function initAiBaseline() {
+            recalculateAllRouteMetrics();
+            aiBaselineData = JSON.parse(JSON.stringify(routesData));
+            aiBaselineTotals = computePlanTotals(routesData);
+            updatePlanComparisonUI();
+        }
+
+        // Update Plan Comparison Banner and Deltas
+        function updatePlanComparisonUI() {
+            if (!aiBaselineData) return;
+
+            const currentTotals = computePlanTotals(routesData);
+            const dMiles = Math.round((currentTotals.miles - aiBaselineTotals.miles) * 10) / 10;
+            const dTime = Math.round(currentTotals.timeMins - aiBaselineTotals.timeMins);
+            const dCost = Math.round((currentTotals.cost - aiBaselineTotals.cost) * 100) / 100;
+            const violations = currentTotals.violations;
+
+            isPlanModified = (Math.abs(dMiles) > 0.1 || Math.abs(dTime) > 2 || Math.abs(dCost) > 0.5 || violations > 0);
+
+            const statusBadge = document.getElementById('plan-status-badge');
+            const revertBtn = document.getElementById('revert-plan-btn');
+            const violationBadge = document.getElementById('plan-violation-badge');
+
+            document.getElementById('comp-total-miles').innerText = `${currentTotals.miles} mi`;
+            document.getElementById('comp-total-time').innerText = formatDurationMinutes(currentTotals.timeMins);
+            document.getElementById('comp-total-cost').innerText = `$${currentTotals.cost.toFixed(2)}`;
+
+            // Header metric sync
+            const headerSpend = document.getElementById('header-spend');
+            if (headerSpend) headerSpend.innerText = `$${currentTotals.cost.toFixed(2)}`;
+
+            if (!isPlanModified) {
+                statusBadge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
+                statusBadge.innerHTML = "✨ AI OPTIMAL PLAN";
+                revertBtn.classList.add('hidden');
+                violationBadge.classList.add('hidden');
+
+                document.getElementById('comp-delta-miles').innerHTML = `<span class="text-slate-500">AI Baseline</span>`;
+                document.getElementById('comp-delta-time').innerHTML = `<span class="text-slate-500">AI Baseline</span>`;
+                document.getElementById('comp-delta-cost').innerHTML = `<span class="text-slate-500">AI Baseline</span>`;
+            } else {
+                statusBadge.className = "px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/40 animate-pulse";
+                statusBadge.innerHTML = "⚠️ DISPATCHER OVERRIDE";
+                revertBtn.classList.remove('hidden');
+
+                if (violations > 0) {
+                    violationBadge.classList.remove('hidden');
+                    violationBadge.innerHTML = `⚠️ ${violations} Late Stop${violations > 1 ? 's' : ''}`;
+                } else {
+                    violationBadge.classList.add('hidden');
+                }
+
+                // Delta Miles
+                const milesSign = dMiles >= 0 ? `+${dMiles}` : `${dMiles}`;
+                const milesColor = dMiles > 0 ? "text-amber-400" : "text-emerald-400";
+                const milesPct = ((dMiles / aiBaselineTotals.miles) * 100).toFixed(1);
+                document.getElementById('comp-delta-miles').innerHTML = `<span class="${milesColor} font-bold">${milesSign} mi (${dMiles >= 0 ? '+' : ''}${milesPct}%)</span>`;
+
+                // Delta Time
+                const timeSign = dTime >= 0 ? `+${dTime}m` : `${dTime}m`;
+                const timeColor = dTime > 0 ? "text-amber-400" : "text-emerald-400";
+                document.getElementById('comp-delta-time').innerHTML = `<span class="${timeColor} font-bold">${timeSign} vs Baseline</span>`;
+
+                // Delta Cost
+                const costSign = dCost >= 0 ? `+$${dCost.toFixed(2)}` : `-$${Math.abs(dCost).toFixed(2)}`;
+                const costColor = dCost > 0 ? "text-rose-400" : "text-emerald-400";
+                document.getElementById('comp-delta-cost').innerHTML = `<span class="${costColor} font-bold">${costSign}</span>`;
+            }
+        }
+
+        // Revert to AI Recommended Optimal Plan
+        function revertToAiPlan() {
+            if (!aiBaselineData) return;
+            routesData = JSON.parse(JSON.stringify(aiBaselineData));
+            recalculateAllRouteMetrics();
+            plotRoutes();
+            renderRoutes();
+            updatePlanComparisonUI();
+            appendAgentLog(`✨ [PLAN RESTORED]: Reverted all routes to AI Recommended Optimal Solution (${aiBaselineTotals.miles} mi, ${formatDurationMinutes(aiBaselineTotals.timeMins)}, $${aiBaselineTotals.cost.toFixed(2)}, 0 window violations).`, "text-cyan-400");
+        }
+
+        // Initialize Leaflet Map
+        function initMap() {
+            map = L.map('map', { zoomControl: true }).setView([40.75, -74.15], 10);
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+                attribution: '&copy; CartoDB &copy; OpenStreetMap',
+                maxZoom: 19
+            }).addTo(map);
+
+            // DC Marker
+            const dcIcon = L.divIcon({
+                className: 'custom-dc-icon',
+                html: `<div class="w-8 h-8 rounded-full bg-cyan-500 border-2 border-white flex items-center justify-center shadow-lg shadow-cyan-500/50"><span class="text-xs font-black text-black">DC</span></div>`,
+                iconSize: [32, 32],
+                iconAnchor: [16, 16]
+            });
+            L.marker([dc.lat, dc.lng], { icon: dcIcon }).addTo(map)
+                .bindPopup(`<strong>${dc.name}</strong><br/>Origin & Fulfillment Hub`);
+
+            plotRoutes();
+        }
+
+        function plotRoutes() {
+            if (!map) return;
+            // Clear existing
+            markers.forEach(m => map.removeLayer(m));
+            routePolylines.forEach(p => map.removeLayer(p));
+            markers = [];
+            routePolylines = [];
+
+            routesData.forEach((route, idx) => {
+                const latlngs = [[dc.lat, dc.lng]];
+
+                route.stops.forEach((stop, sIdx) => {
+                    latlngs.push([stop.lat, stop.lng]);
+
+                    const stopIcon = L.divIcon({
+                        className: 'custom-stop-icon',
+                        html: `<div class="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-black border-2 border-white shadow-md ${stop.isLate ? 'ring-2 ring-rose-500 ring-offset-2 ring-offset-black' : ''}" style="background-color: ${stop.isLate ? '#f43f5e' : route.color};">${sIdx+1}</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+
+                    const marker = L.marker([stop.lat, stop.lng], { icon: stopIcon }).addTo(map)
+                        .bindPopup(`
+                            <div class="text-xs p-1">
+                                <strong class="text-sm">${stop.name}</strong><br/>
+                                <span class="text-slate-400">Route:</span> ${route.name}<br/>
+                                <span class="text-slate-400">Committed Window:</span> ${stop.window}<br/>
+                                <span class="text-slate-400">Optimized ETA:</span> <strong class="${stop.isLate ? 'text-rose-400' : 'text-emerald-400'}">${stop.eta} ${stop.isLate ? `(⚠️ +${stop.lateMins}m Late)` : ''}</strong><br/>
+                                <div class="mt-1 pt-1 border-t border-slate-700 flex gap-2">
+                                    <span>❄️ ${stop.f}p</span>
+                                    <span>🥦 ${stop.c}p</span>
+                                    <span>🥫 ${stop.a}p</span>
+                                </div>
+                            </div>
+                        `);
+                    markers.push(marker);
+                });
+
+                latlngs.push([dc.lat, dc.lng]); // Return to DC
+
+                const poly = L.polyline(latlngs, {
+                    color: route.color,
+                    weight: 4,
+                    opacity: 0.85,
+                    dashArray: '6, 8'
+                }).addTo(map);
+                routePolylines.push(poly);
+            });
+        }
+
+        // Render Route Cards
+        function renderRoutes() {
+            const container = document.getElementById('routes-container');
+            if (!container) return;
+            container.innerHTML = '';
+
+            routesData.forEach((route, rIdx) => {
+                const aiR = aiBaselineData ? aiBaselineData[rIdx] : null;
+                const dMiles = aiR ? Math.round((route.miles - aiR.miles) * 10) / 10 : 0;
+                const dCost = aiR ? Math.round((route.cost - aiR.cost) * 100) / 100 : 0;
+
+                const card = document.createElement('div');
+                card.className = "bg-dark-900/90 rounded-xl p-3 border border-dark-700 hover:border-slate-600 transition shadow-sm";
+                card.innerHTML = `
+                    <div class="flex items-center justify-between pb-2 border-b border-dark-700">
+                        <div class="flex items-center space-x-2">
+                            <span class="w-3 h-3 rounded-full" style="background-color: ${route.color}"></span>
+                            <span class="text-xs font-bold text-white">${route.name}</span>
+                            ${(Math.abs(dMiles) > 0.1 || Math.abs(dCost) > 0.5) ? `
+                                <span class="text-[9px] px-1.5 py-0.2 rounded font-semibold ${dCost > 0 ? 'bg-amber-500/20 text-amber-400 border border-amber-500/30' : 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'}">
+                                    ${dMiles >= 0 ? '+' : ''}${dMiles} mi • ${dCost >= 0 ? '+' : ''}$${dCost.toFixed(2)}
+                                </span>
+                            ` : ''}
+                        </div>
+                        <span class="text-[10px] mono text-slate-400">${route.trailer}</span>
+                    </div>
+
+                    <div class="flex items-center justify-between text-[11px] py-1.5 text-slate-300">
+                        <span>${route.stops.length} Stops • <strong class="text-white">${route.miles} mi</strong> • ${route.durationFormatted}</span>
+                        <span class="font-bold text-emerald-400">$${route.cost.toFixed(2)} est.</span>
+                    </div>
+
+                    <div class="space-y-1.5 mt-1 sortable-stop-list" data-route-index="${rIdx}">
+                        ${route.stops.map((s, sIdx) => `
+                            <div class="bg-dark-800 p-2 rounded-lg border ${s.isLate ? 'border-rose-500/50 bg-rose-950/20' : 'border-dark-700'} flex items-center justify-between text-xs cursor-move hover:bg-dark-700 transition" data-stop-id="${s.id}">
+                                <div class="flex items-center space-x-2">
+                                    <span class="w-5 h-5 rounded ${s.isLate ? 'bg-rose-500 text-white font-extrabold' : 'bg-dark-900 text-slate-300'} text-[10px] font-bold flex items-center justify-center border border-dark-600">${sIdx+1}</span>
+                                    <div>
+                                        <div class="font-medium text-slate-200 text-xs">${s.name}</div>
+                                        <div class="text-[10px] text-slate-400">
+                                            ETA: <strong class="${s.isLate ? 'text-rose-400 font-bold' : 'text-emerald-400'}">${s.eta}</strong> 
+                                            (Win: ${s.window})
+                                            ${s.isLate ? `<span class="ml-1 text-[9px] px-1 py-0.2 rounded bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold">⚠️ +${s.lateMins}m LATE</span>` : ''}
+                                            ${s.isEarly ? `<span class="ml-1 text-[9px] px-1 py-0.2 rounded bg-cyan-500/10 text-cyan-400 border border-cyan-500/20">🕒 Early (${s.earlyMins}m wait)</span>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="text-[10px] mono text-slate-400 bg-dark-900 px-1.5 py-0.5 rounded border border-dark-700">
+                                    ${s.pallets}p [❄️${s.f} 🥦${s.c} 🥫${s.a}]
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Initialize Sortable for Drag-and-Drop
+            if (typeof Sortable !== 'undefined') {
+                document.querySelectorAll('.sortable-stop-list').forEach(el => {
+                    new Sortable(el, {
+                        group: 'shared-routes',
+                        animation: 150,
+                        onEnd: function (evt) {
+                            handleStopDrop(evt);
+                        }
+                    });
+                });
+            }
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
+        }
+
+        // Handle Drag & Drop Stop Reordering with Instant Recalculation
+        function handleStopDrop(evt) {
+            const fromRouteIdx = parseInt(evt.from.getAttribute('data-route-index'));
+            const toRouteIdx = parseInt(evt.to.getAttribute('data-route-index'));
+            const oldIdx = evt.oldIndex;
+            const newIdx = evt.newIndex;
+
+            const prevTotals = computePlanTotals(routesData);
+
+            // Move in data model
+            const movedStop = routesData[fromRouteIdx].stops.splice(oldIdx, 1)[0];
+            routesData[toRouteIdx].stops.splice(newIdx, 0, movedStop);
+
+            // Sub-50ms recalculation
+            recalculateAllRouteMetrics();
+            plotRoutes();
+            renderRoutes();
+            updatePlanComparisonUI();
+
+            const newTotals = computePlanTotals(routesData);
+            const dMiles = Math.round((newTotals.miles - prevTotals.miles) * 10) / 10;
+            const dCost = Math.round((newTotals.cost - prevTotals.cost) * 100) / 100;
+            const dTime = Math.round(newTotals.timeMins - prevTotals.timeMins);
+
+            // Log detailed difference to Agent Stream
+            appendAgentLog(`⚡ [HITL INTERVENTION]: Re-sequenced "${movedStop.name}" into ${routesData[toRouteIdx].name}. Total Miles: ${prevTotals.miles} mi ➔ ${newTotals.miles} mi (${dMiles >= 0 ? '+' : ''}${dMiles} mi), Spend: $${prevTotals.cost.toFixed(2)} ➔ $${newTotals.cost.toFixed(2)} (${dCost >= 0 ? '+' : ''}$${dCost.toFixed(2)}), Duration: ${dTime >= 0 ? '+' : ''}${dTime} min.`, "text-amber-400");
+        }
+
+        // Render Carrier Auction Cards & MCDA Matrix Table
+        function renderCarriers() {
+            const container = document.getElementById('carrier-board');
+            const tableBody = document.getElementById('mcda-table-body');
+            const summaryHeader = document.getElementById('auction-summary-header');
+            if (!container) return;
+
+            const awardedCarrier = carriers.find(c => c.awarded) || carriers[0];
+
+            // Render Executive Auction Summary Header
+            if (summaryHeader) {
+                summaryHeader.innerHTML = `
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div class="flex items-center space-x-3.5">
+                            <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-extrabold text-lg shadow-lg shadow-emerald-500/10">
+                                🏆
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Winning Tendered Carrier:</span>
+                                    <span class="text-sm font-extrabold text-white">${awardedCarrier.name}</span>
+                                    <span class="text-[9px] px-2 py-0.5 rounded font-bold ${awardedCarrier.tierBadge}">${awardedCarrier.tier}</span>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-300">
+                                    <span>Rate: <strong class="text-emerald-400">$${awardedCarrier.rate.toFixed(2)}</strong> ($${awardedCarrier.cpm}/mi)</span>
+                                    <span class="text-slate-600">•</span>
+                                    <span>MCDA Score: <strong class="text-cyan-400">${awardedCarrier.score} / 100</strong></span>
+                                    <span class="text-slate-600">•</span>
+                                    <span class="text-purple-300">On-Time: <strong>${awardedCarrier.historicalOnTime}</strong></span>
+                                    <span class="text-slate-600">•</span>
+                                    <span class="text-emerald-300">FSMA: <strong>${awardedCarrier.fsmaCompliance}</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2 self-end md:self-center">
+                            <div class="bg-dark-800 px-3 py-1.5 rounded-lg border border-dark-700 text-right">
+                                <span class="text-[9px] text-slate-400 block font-semibold">TENDER LOCK & INTEGRATION</span>
+                                <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5 justify-end">
+                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                                    <span>${awardedCarrier.ediStatus}</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Render Carrier Grid Cards (2x2 Grid)
+            container.innerHTML = '';
+            carriers.forEach(c => {
+                const card = document.createElement('div');
+                card.className = `p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between ${
+                    c.awarded 
+                    ? 'bg-emerald-950/20 border-emerald-500/60 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/40' 
+                    : 'bg-dark-900/90 border-dark-700 hover:border-dark-600'
+                }`;
+                
+                card.innerHTML = `
+                    <div>
+                        <!-- Header -->
+                        <div class="flex items-start justify-between pb-2.5 border-b border-dark-700">
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <h4 class="text-sm font-bold text-white">${c.name}</h4>
+                                    ${c.awarded ? '<span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-emerald-500 text-black">AWARDED #1</span>' : ''}
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2 mt-1">
+                                    <span class="text-[9px] px-2 py-0.5 rounded font-semibold ${c.tierBadge}">${c.tier}</span>
+                                    <span class="text-[10px] text-slate-400">${c.equipment}</span>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-base font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-white'}">$${c.rate.toFixed(2)}</div>
+                                <div class="text-[10px] text-slate-400 font-medium">$${c.cpm}/mi</div>
+                            </div>
+                        </div>
+
+                        <!-- Cost Breakdown Pill -->
+                        <div class="grid grid-cols-3 gap-1.5 my-2.5 p-2 rounded-lg bg-dark-800/80 border border-dark-700/60 text-[10px] text-center">
+                            <div>
+                                <span class="text-slate-400 block text-[9px]">Linehaul</span>
+                                <span class="font-bold text-slate-200">$${c.linehaul.toFixed(2)}</span>
+                            </div>
+                            <div class="border-x border-dark-700/80">
+                                <span class="text-slate-400 block text-[9px]">Fuel Surchg</span>
+                                <span class="font-bold text-slate-200">$${c.fuelSurcharge.toFixed(2)}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[9px]">Stop Fee</span>
+                                <span class="font-bold text-slate-200">$${c.accessorials.toFixed(2)}</span>
+                            </div>
+                        </div>
+
+                        <!-- 40/30/20/10 Score Gauge Progress Bars -->
+                        <div class="space-y-2 mt-2">
+                            <!-- Rate -->
+                            <div>
+                                <div class="flex justify-between text-[10px] mb-0.5">
+                                    <span class="text-slate-400 font-medium">Rate Competitiveness (40% Weight)</span>
+                                    <span class="font-bold text-cyan-400">${c.rateScore.toFixed(1)} / 40.0</span>
+                                </div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${(c.rateScore / 40.0) * 100}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Reliability -->
+                            <div>
+                                <div class="flex justify-between text-[10px] mb-0.5">
+                                    <span class="text-slate-400 font-medium">On-Time Reliability (30% Weight • ${c.historicalOnTime})</span>
+                                    <span class="font-bold text-purple-400">${c.relScore.toFixed(1)} / 30.0</span>
+                                </div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-purple-400 h-full rounded-full transition-all duration-500" style="width: ${(c.relScore / 30.0) * 100}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- SLA -->
+                            <div>
+                                <div class="flex justify-between text-[10px] mb-0.5">
+                                    <span class="text-slate-400 font-medium">FSMA Temp SLA (20% Weight • ${c.fsmaCompliance})</span>
+                                    <span class="font-bold text-emerald-400">${c.slaScore.toFixed(1)} / 20.0</span>
+                                </div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-emerald-400 h-full rounded-full transition-all duration-500" style="width: ${(c.slaScore / 20.0) * 100}%"></div>
+                                </div>
+                            </div>
+
+                            <!-- Preferred -->
+                            <div>
+                                <div class="flex justify-between text-[10px] mb-0.5">
+                                    <span class="text-slate-400 font-medium">Fleet Partner Preference (10% Weight)</span>
+                                    <span class="font-bold text-amber-400">${c.prefScore.toFixed(1)} / 10.0</span>
+                                </div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
+                                    <div class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: ${(c.prefScore / 10.0) * 100}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Footer Action -->
+                    <div class="flex items-center justify-between mt-4 pt-3 border-t border-dark-700/80 text-xs">
+                        <div>
+                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Total Composite Score:</span>
+                            <div class="text-base font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-slate-200'}">${c.score.toFixed(1)} <span class="text-xs font-normal text-slate-400">/ 100</span></div>
+                        </div>
+
+                        ${c.awarded ? `
+                            <span class="px-3 py-1.5 rounded-lg bg-emerald-500 text-black font-extrabold text-[11px] flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
+                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
+                                <span>TENDER LOCKED & WMS RELEASED</span>
+                            </span>
+                        ` : `
+                            <button onclick="awardCarrier('${c.name}')" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-emerald-500/20 text-slate-200 hover:text-emerald-400 border border-dark-600 hover:border-emerald-500/40 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
+                                <i data-lucide="check" class="w-3 h-3"></i>
+                                <span>Override & Book Carrier</span>
+                            </button>
+                        `}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // Render MCDA Evaluation Matrix Table
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                carriers.forEach(c => {
+                    const row = document.createElement('tr');
+                    row.className = `hover:bg-dark-800/40 transition ${c.awarded ? 'bg-emerald-950/15' : ''}`;
+                    row.innerHTML = `
+                        <td class="py-2.5 pr-2 font-bold ${c.awarded ? 'text-emerald-400' : 'text-white'} flex items-center gap-1.5">
+                            ${c.awarded ? '<i data-lucide="award" class="w-3.5 h-3.5 text-emerald-400"></i>' : ''}
+                            <span>${c.name}</span>
+                        </td>
+                        <td class="py-2.5 pr-2"><span class="text-[9px] px-1.5 py-0.5 rounded font-semibold ${c.tierBadge}">${c.tier}</span></td>
+                        <td class="py-2.5 pr-2 text-right font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-slate-200'}">$${c.rate.toFixed(2)}</td>
+                        <td class="py-2.5 pr-2 text-right font-semibold text-cyan-400">${c.rateScore.toFixed(1)}</td>
+                        <td class="py-2.5 pr-2 text-right font-semibold text-purple-400">${c.relScore.toFixed(1)}</td>
+                        <td class="py-2.5 pr-2 text-right font-semibold text-emerald-400">${c.slaScore.toFixed(1)}</td>
+                        <td class="py-2.5 pr-2 text-right font-semibold text-amber-400">${c.prefScore.toFixed(1)}</td>
+                        <td class="py-2.5 pr-2 text-right font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-white'}">${c.score.toFixed(1)}</td>
+                        <td class="py-2.5 text-center">
+                            ${c.awarded ? 
+                                '<span class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">AWARDED #1</span>' : 
+                                (c.score < 70 ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">RISK REJECT</span>' : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-dark-800 text-slate-400 border border-dark-700">ELIGIBLE</span>')
+                            }
+                        </td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+            }
+
+            lucide.createIcons();
+        }
+
+        function awardCarrier(name) {
+            carriers.forEach(c => {
+                c.awarded = (c.name === name);
+                if (c.awarded) {
+                    c.ediStatus = "EDI 204 Transmitted • Wave Released (Bay 04)";
+                } else {
+                    c.ediStatus = (c.score < 70 ? "Disqualified (Temp Risk)" : "Ready for Tender Transmission");
+                }
+            });
+            renderCarriers();
+            appendAgentLog(`🔒 [AGENT 5]: Manual override tender confirmed for ${name}. EDI 204 transmitted. WMS wave released to Bay 04.`, "text-emerald-400");
+        }
+
+        // 2D Trailer Bulkhead Grid Visualizer
+        function renderTrailerGrid() {
+            const grid = document.getElementById('trailer-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+            
+            const frozenPlts = parseInt(document.getElementById('slider-frozen').value);
+            const chillPlts = parseInt(document.getElementById('slider-chill').value);
+            const totalSlots = 28; // 14 rows x 2 pallets
+
+            for (let i = 0; i < totalSlots; i++) {
+                const cell = document.createElement('div');
+                cell.className = "h-8 rounded flex items-center justify-center text-[10px] font-bold transition-all duration-300 border border-black/30 shadow-inner";
+                
+                if (i < frozenPlts) {
+                    cell.className += " bg-cyan-500 text-black";
+                    cell.innerHTML = "❄️";
+                } else if (i < (frozenPlts + chillPlts)) {
+                    cell.className += " bg-emerald-500 text-black";
+                    cell.innerHTML = "🥦";
+                } else {
+                    cell.className += " bg-amber-500 text-black";
+                    cell.innerHTML = "🥫";
+                }
+                grid.appendChild(cell);
+            }
+        }
+
+        function updateBulkheadSlider() {
+            const fVal = document.getElementById('slider-frozen').value;
+            const cVal = document.getElementById('slider-chill').value;
+            document.getElementById('slider-frozen-val').innerText = `${fVal} Pallets`;
+            document.getElementById('slider-chill-val').innerText = `${cVal} Pallets`;
+            renderTrailerGrid();
+        }
+
+        // View Switcher (3 Tabs: Map, Auction, Bulkhead)
+        function switchView(v) {
+            currentView = v;
+
+            const mapContainer = document.getElementById('map-view-container');
+            const auctionContainer = document.getElementById('auction-view-container');
+            const bulkheadContainer = document.getElementById('bulkhead-view-container');
+
+            const tabMap = document.getElementById('tab-map');
+            const tabAuction = document.getElementById('tab-auction');
+            const tabBulkhead = document.getElementById('tab-bulkhead');
+
+            const indMap = document.getElementById('tab-indicator-map');
+            const indAuction = document.getElementById('tab-indicator-auction');
+            const indBulkhead = document.getElementById('tab-indicator-bulkhead');
+
+            // Hide all
+            if (mapContainer) mapContainer.classList.add('hidden');
+            if (auctionContainer) auctionContainer.classList.add('hidden');
+            if (bulkheadContainer) bulkheadContainer.classList.add('hidden');
+
+            if (indMap) indMap.classList.add('hidden');
+            if (indAuction) indAuction.classList.add('hidden');
+            if (indBulkhead) indBulkhead.classList.add('hidden');
+
+            const inactiveClass = "text-xs font-bold text-slate-400 hover:text-slate-200 pb-1.5 flex items-center gap-1.5 transition cursor-pointer";
+            const activeClass = "text-xs font-bold text-cyan-400 border-b-2 border-cyan-400 pb-1.5 flex items-center gap-1.5 transition cursor-pointer";
+
+            if (tabMap) tabMap.className = inactiveClass;
+            if (tabAuction) tabAuction.className = inactiveClass;
+            if (tabBulkhead) tabBulkhead.className = inactiveClass;
+
+            if (v === 'map') {
+                if (mapContainer) mapContainer.classList.remove('hidden');
+                if (indMap) indMap.classList.remove('hidden');
+                if (tabMap) tabMap.className = activeClass;
+                setTimeout(() => { if (map) map.invalidateSize(); }, 60);
+            } else if (v === 'auction') {
+                if (auctionContainer) auctionContainer.classList.remove('hidden');
+                if (indAuction) indAuction.classList.remove('hidden');
+                if (tabAuction) tabAuction.className = activeClass;
+                renderCarriers();
+            } else if (v === 'bulkhead') {
+                if (bulkheadContainer) bulkheadContainer.classList.remove('hidden');
+                if (indBulkhead) indBulkhead.classList.remove('hidden');
+                if (tabBulkhead) tabBulkhead.className = activeClass;
+                renderTrailerGrid();
+            }
+            lucide.createIcons();
+        }
+
+        // Agent Execution Pipeline Simulation
+        function runOptimizationPipeline() {
+            const logsContainer = document.getElementById('agent-thought-logs');
+            logsContainer.innerHTML = '';
+
+            const logs = [
+                { text: "🚀 [AGENT ORCHESTRATOR]: Initializing multi-agent cold-chain pipeline...", delay: 100, color: "text-cyan-400" },
+                { text: "🤖 [AGENT 1: DEMAND PROFILER]: Ingested 12 customer grocery orders. Sliced 4D vectors: 35 Frozen plts (-10°F), 44 Chill plts (36°F), 39 Ambient plts.", delay: 400, color: "text-blue-400" },
+                { text: "🤖 [AGENT 2: FLEET ALLOCATOR]: Audited dock restrictions. Allocated 53W Reefer, 48W Reefer, 46W City Reefer with liftgate.", delay: 800, color: "text-purple-400" },
+                { text: "🤖 [AGENT 3: ROUTE OPTIMIZER]: Solved MC-VRPTW. Formed 3 regional clusters. Set movable bulkheads in 2-pallet increments. LIFO staging verified.", delay: 1200, color: "text-cyan-300" },
+                { text: "🤖 [AGENT 4: RATE AGGREGATOR]: Broadcasted parallel RFQs across 4 carriers in 280ms. Normalized linehaul & FSC.", delay: 1600, color: "text-amber-400" },
+                { text: "🤖 [AGENT 5: CARRIER DECISION]: Evaluated 40/30/20/10 matrix. Swift Logistics ranked #1 (89.8/100). Locked EDI 204 tender & triggered WMS Wave Picking release.", delay: 2000, color: "text-emerald-400" },
+                { text: "🤖 [AGENT 6: TELEMATICS MONITOR]: Active IoT sensor tracking online. 100% FSMA temperature compliance across all 3 zones.", delay: 2400, color: "text-rose-400" }
+            ];
+
+            logs.forEach(item => {
+                setTimeout(() => {
+                    appendAgentLog(item.text, item.color);
+                }, item.delay);
+            });
+        }
+
+        function appendAgentLog(text, color = "text-slate-300") {
+            const container = document.getElementById('agent-thought-logs');
+            const div = document.createElement('div');
+            div.className = `leading-relaxed ${color}`;
+            div.innerHTML = `<span class="text-slate-500">[${new Date().toLocaleTimeString()}]</span> ${text}`;
+            container.appendChild(div);
+            container.scrollTop = container.scrollHeight;
+        }
+
+        // Modals
+        function toggleLegacyComparison() {
+            document.getElementById('legacy-modal').classList.toggle('hidden');
+        }
+
+        function openAgentInspector() {
+            inspectSpecificAgent(1);
+            document.getElementById('agent-modal').classList.remove('hidden');
+        }
+
+        function closeAgentInspector() {
+            document.getElementById('agent-modal').classList.add('hidden');
+        }
+
+        function inspectSpecificAgent(id) {
+            const data = agentDetails[id];
+            if (!data) return;
+
+            document.getElementById('modal-agent-title').innerText = data.title;
+            document.getElementById('modal-agent-role').innerText = data.role;
+            document.getElementById('modal-agent-prompt').innerText = data.prompt;
+
+            const toolsList = document.getElementById('modal-agent-tools');
+            toolsList.innerHTML = data.tools.map(t => `<li class="flex items-center gap-2"><i data-lucide="check" class="w-3.5 h-3.5 text-purple-400"></i> ${t}</li>`).join('');
+
+            const outputsList = document.getElementById('modal-agent-outputs');
+            outputsList.innerHTML = data.outputs.map(o => `<li class="flex items-center gap-2"><i data-lucide="file-text" class="w-3.5 h-3.5 text-emerald-400"></i> ${o}</li>`).join('');
+
+            document.getElementById('agent-modal').classList.remove('hidden');
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
