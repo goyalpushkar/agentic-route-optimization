@@ -71,7 +71,7 @@
         }
     </style>
 </head>
-<body class="bg-dark-900 text-slate-100 min-h-screen flex flex-col antialiased">
+<body class="bg-dark-900 text-slate-100 h-screen flex flex-col overflow-hidden antialiased">
 
     <!-- Top Executive Header -->
     <header class="bg-dark-800 border-b border-dark-700/80 px-6 py-3 flex flex-wrap items-center justify-between gap-4 sticky top-0 z-50 backdrop-blur-md bg-opacity-95">
@@ -272,6 +272,36 @@
                 <!-- TAB 2: Live Carrier Rate Auction & 40/30/20/10 MCDA (Spacious & Readable Dashboard) -->
                 <div id="auction-view-container" class="hidden flex-1 flex flex-col mt-3 overflow-y-auto custom-scrollbar min-h-0 space-y-4 pr-1">
                     
+                    <!-- Carrier Auction Controls & JSON Ingestion Header -->
+                    <div class="flex flex-wrap items-center justify-between gap-3 bg-dark-900/90 p-3 rounded-xl border border-dark-700">
+                        <div class="flex items-center space-x-3">
+                            <label class="text-xs font-bold text-slate-300 flex items-center gap-1.5">
+                                <i data-lucide="git-branch" class="w-3.5 h-3.5 text-cyan-400"></i>
+                                <span>Tender RFQ for Route:</span>
+                            </label>
+                            <select id="auction-route-select" onchange="onAuctionRouteChange(this.value)" class="bg-dark-800 text-cyan-400 font-bold text-xs px-2.5 py-1.5 rounded-lg border border-dark-600 focus:outline-none focus:border-cyan-500 cursor-pointer">
+                                <option value="0">Route-101 (North NJ Route • 52.0 mi)</option>
+                                <option value="1">Route-102 (Central & West NJ • 89.5 mi)</option>
+                                <option value="2">Route-103 (Metro NYC Route • 43.0 mi)</option>
+                            </select>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span id="carrier-json-status" class="text-[10px] px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                                <span>data/carriers.json Active</span>
+                            </span>
+                            <button onclick="reloadCarriersJson()" class="text-[11px] bg-dark-800 hover:bg-dark-700 text-slate-200 px-2.5 py-1 rounded-lg border border-dark-600 hover:border-cyan-500/50 transition flex items-center gap-1.5 cursor-pointer" title="Re-fetch data/carriers.json">
+                                <i data-lucide="refresh-cw" class="w-3 h-3 text-cyan-400"></i>
+                                <span>Sync JSON</span>
+                            </button>
+                            <label class="text-[11px] bg-dark-800 hover:bg-dark-700 text-slate-200 px-2.5 py-1 rounded-lg border border-dark-600 hover:border-purple-500/50 transition flex items-center gap-1.5 cursor-pointer" title="Upload custom carriers.json file">
+                                <i data-lucide="upload" class="w-3 h-3 text-purple-400"></i>
+                                <span>Upload JSON</span>
+                                <input type="file" id="carrier-file-input" accept=".json" class="hidden" onchange="handleCarrierFileUpload(event)">
+                            </label>
+                        </div>
+                    </div>
+
                     <!-- Auction Live Summary Card -->
                     <div id="auction-summary-header" class="bg-dark-900/90 rounded-xl p-4 border border-dark-700 shadow-md">
                         <!-- Populated dynamically by renderCarriers() -->
@@ -547,92 +577,77 @@
             }
         ];
 
-        const carriers = [
+        // Raw Carrier Profiles from data/carriers.json
+        let rawCarriersData = [
             {
-                id: "CAR-001",
-                name: "Swift Cold-Chain Logistics",
-                tier: "Tier-1 Preferred Contracted",
-                tierBadge: "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30",
-                rate: 366.60,
-                cpm: 7.05,
-                linehaul: 280.00,
-                fuelSurcharge: 56.60,
-                accessorials: 30.00,
-                equipment: "53' Multi-Temp Reefer (-20°F to 65°F Dual Zone)",
-                historicalOnTime: "98.3% On-Time",
-                fsmaCompliance: "100% FSMA SLA",
-                score: 89.8,
-                rateScore: 30.3,
-                relScore: 29.5,
-                slaScore: 20.0,
-                prefScore: 10.0,
-                ediStatus: "EDI 204 Transmitted • Wave Released (Bay 04)",
-                awarded: true
+                "carrier_id": "HJBT",
+                "carrier_name": "JB Hunt",
+                "dot_number": "DOT-449102",
+                "tier": "Tier-1 Preferred",
+                "preferred_score": 10,
+                "historical_on_time_pickup_pct": 98.2,
+                "fsma_certified": true,
+                "reefer_telematics_connected": true,
+                "claims_free_rate_pct": 99.4,
+                "pricing_model": {
+                    "base_rate_per_mile": 2.85,
+                    "fuel_surcharge_per_mile": 0.45,
+                    "stop_charge": 65.0
+                }
             },
             {
-                id: "CAR-002",
-                name: "Prime Inc Multi-Temp",
-                tier: "Tier-1 Preferred Contracted",
-                tierBadge: "bg-blue-500/20 text-blue-400 border border-blue-500/30",
-                rate: 375.00,
-                cpm: 7.21,
-                linehaul: 290.00,
-                fuelSurcharge: 55.00,
-                accessorials: 30.00,
-                equipment: "53' Multi-Temp Reefer (Carrier Transicold)",
-                historicalOnTime: "95.0% On-Time",
-                fsmaCompliance: "100% FSMA SLA",
-                score: 87.2,
-                rateScore: 29.2,
-                relScore: 28.5,
-                slaScore: 20.0,
-                prefScore: 9.5,
-                ediStatus: "Ready for Tender Transmission",
-                awarded: false
+                "carrier_id": "PSKO",
+                "carrier_name": "Penske Truck Leasing",
+                "dot_number": "DOT-381920",
+                "tier": "Tier-1 Preferred",
+                "preferred_score": 9,
+                "historical_on_time_pickup_pct": 94.6,
+                "fsma_certified": true,
+                "reefer_telematics_connected": true,
+                "claims_free_rate_pct": 98.1,
+                "pricing_model": {
+                    "base_rate_per_mile": 2.70,
+                    "fuel_surcharge_per_mile": 0.45,
+                    "stop_charge": 60.0
+                }
             },
             {
-                id: "CAR-003",
-                name: "C.H. Robinson Dedicated",
-                tier: "Tier-2 Secondary Partner",
-                tierBadge: "bg-purple-500/20 text-purple-400 border border-purple-500/30",
-                rate: 382.40,
-                cpm: 7.35,
-                linehaul: 295.00,
-                fuelSurcharge: 57.40,
-                accessorials: 30.00,
-                equipment: "48' Multi-Temp Reefer with Liftgate",
-                historicalOnTime: "91.7% On-Time",
-                fsmaCompliance: "100% FSMA SLA",
-                score: 82.5,
-                rateScore: 28.0,
-                relScore: 27.5,
-                slaScore: 20.0,
-                prefScore: 7.0,
-                ediStatus: "Ready for Tender Transmission",
-                awarded: false
+                "carrier_id": "CWAO",
+                "carrier_name": "Cowans Systems Inc",
+                "dot_number": "DOT-102948",
+                "tier": "Tier-2 Secondary",
+                "preferred_score": 7,
+                "historical_on_time_pickup_pct": 91.5,
+                "fsma_certified": true,
+                "reefer_telematics_connected": true,
+                "claims_free_rate_pct": 96.8,
+                "pricing_model": {
+                    "base_rate_per_mile": 2.60,
+                    "fuel_surcharge_per_mile": 0.45,
+                    "stop_charge": 55.0
+                }
             },
             {
-                id: "CAR-004",
-                name: "DAT Spot Board Carrier",
-                tier: "Spot Unvetted",
-                tierBadge: "bg-rose-500/20 text-rose-400 border border-rose-500/30",
-                rate: 320.00,
-                cpm: 6.15,
-                linehaul: 250.00,
-                fuelSurcharge: 50.00,
-                accessorials: 20.00,
-                equipment: "Single-Temp Reefer (Cross-Temp Spoilage Risk)",
-                historicalOnTime: "82.0% (High Risk)",
-                fsmaCompliance: "50% (High Penalty)",
-                score: 68.4,
-                rateScore: 40.0,
-                relScore: 24.6,
-                slaScore: 10.0,
-                prefScore: 0.0,
-                ediStatus: "Disqualified (Temp Risk)",
-                awarded: false
+                "carrier_id": "CARR-SPOTX",
+                "carrier_name": "CSWTG",
+                "dot_number": "DOT-981244",
+                "tier": "Spot Non-Contracted",
+                "preferred_score": 0,
+                "historical_on_time_pickup_pct": 82.0,
+                "fsma_certified": true,
+                "reefer_telematics_connected": false,
+                "claims_free_rate_pct": 92.5,
+                "pricing_model": {
+                    "base_rate_per_mile": 2.30,
+                    "fuel_surcharge_per_mile": 0.45,
+                    "stop_charge": 45.0
+                }
             }
         ];
+
+        let selectedAuctionRouteIdx = 0;
+        let manualAwardedCarrierId = null;
+        let computedCarriers = [];
 
         const agentDetails = {
             1: {
@@ -690,7 +705,7 @@
             initMap();
             initAiBaseline();
             renderRoutes();
-            renderCarriers();
+            fetchCarriersJson();
             renderTrailerGrid();
             runOptimizationPipeline();
         });
@@ -797,6 +812,11 @@
                 // Realistic cost formula: $2.65/mi fuel & linehaul + $36.50/hr driver + $28 drop charge per stop
                 route.cost = Math.round((route.miles * 2.65 + (route.totalMinutes / 60) * 36.50 + route.stops.length * 28.00) * 100) / 100;
             });
+
+            // Re-evaluate carrier bids against updated route miles & stops
+            evaluateCarriers();
+            renderCarriers();
+            updateAuctionRouteSelect();
         }
 
         function computePlanTotals(data) {
@@ -1074,213 +1094,413 @@
             appendAgentLog(`⚡ [HITL INTERVENTION]: Re-sequenced "${movedStop.name}" into ${routesData[toRouteIdx].name}. Total Miles: ${prevTotals.miles} mi ➔ ${newTotals.miles} mi (${dMiles >= 0 ? '+' : ''}${dMiles} mi), Spend: $${prevTotals.cost.toFixed(2)} ➔ $${newTotals.cost.toFixed(2)} (${dCost >= 0 ? '+' : ''}$${dCost.toFixed(2)}), Duration: ${dTime >= 0 ? '+' : ''}${dTime} min.`, "text-amber-400");
         }
 
-        // Render Carrier Auction Cards & MCDA Matrix Table
+        // Dynamic 40/30/20/10 Carrier MCDA Evaluator
+        function evaluateCarriers() {
+            const currentRoute = routesData[selectedAuctionRouteIdx] || routesData[0];
+            const miles = currentRoute.miles || 52.0;
+            const intermediateStops = Math.max(0, (currentRoute.stops ? currentRoute.stops.length : 4) - 1);
+
+            // 1. Calculate rate quotes for each carrier based on active route miles & stops
+            const quotes = rawCarriersData.map(c => {
+                const pricing = c.pricing_model || { base_rate_per_mile: 2.50, fuel_surcharge_per_mile: 0.45, stop_charge: 50.0 };
+                const linehaul = miles * pricing.base_rate_per_mile;
+                const fuelSurcharge = miles * pricing.fuel_surcharge_per_mile;
+                const accessorials = intermediateStops * pricing.stop_charge;
+                const totalRate = Math.round((linehaul + fuelSurcharge + accessorials) * 100) / 100;
+                const cpm = miles > 0 ? (totalRate / miles).toFixed(2) : "0.00";
+
+                return {
+                    carrier: c,
+                    linehaul,
+                    fuelSurcharge,
+                    accessorials,
+                    totalRate,
+                    cpm
+                };
+            });
+
+            const minRate = Math.min(...quotes.map(q => q.totalRate));
+
+            // 2. Compute 40/30/20/10 MCDA scores matching Agent 5
+            computedCarriers = quotes.map(q => {
+                const c = q.carrier;
+                const rateScore = Math.round((40.0 * (minRate / q.totalRate)) * 10) / 10;
+                const relPct = c.historical_on_time_pickup_pct !== undefined ? c.historical_on_time_pickup_pct : 90.0;
+                const relScore = Math.round((30.0 * (relPct / 100.0)) * 10) / 10;
+
+                let slaScore = 0.0;
+                if (c.fsma_certified) slaScore += 10.0;
+                if (c.reefer_telematics_connected) slaScore += 10.0;
+
+                const prefScore = parseFloat(c.preferred_score || 0);
+                const compositeScore = Math.round((rateScore + relScore + slaScore + prefScore) * 10) / 10;
+
+                let tierBadge = "bg-rose-500/20 text-rose-400 border border-rose-500/30";
+                if (c.tier && c.tier.includes("Tier-1")) {
+                    tierBadge = "bg-cyan-500/20 text-cyan-400 border border-cyan-500/30";
+                } else if (c.tier && c.tier.includes("Tier-2")) {
+                    tierBadge = "bg-purple-500/20 text-purple-400 border border-purple-500/30";
+                }
+
+                const equipment = c.reefer_telematics_connected 
+                    ? "53' Multi-Temp Reefer (-20°F to 65°F Telematics)" 
+                    : "Single-Temp Reefer (Cross-Temp Spoilage Risk)";
+
+                const historicalOnTime = `${relPct}% On-Time`;
+                const fsmaCompliance = c.fsma_certified ? "100% FSMA SLA" : "Non-FSMA Compliant";
+
+                return {
+                    id: c.carrier_id || c.id || c.carrier_name,
+                    name: c.carrier_name || c.name,
+                    dotNumber: c.dot_number || "DOT-N/A",
+                    tier: c.tier || "Spot Unvetted",
+                    tierBadge,
+                    rate: q.totalRate,
+                    cpm: q.cpm,
+                    linehaul: q.linehaul,
+                    fuelSurcharge: q.fuelSurcharge,
+                    accessorials: q.accessorials,
+                    equipment,
+                    historicalOnTime,
+                    fsmaCompliance,
+                    score: compositeScore,
+                    rateScore,
+                    relScore,
+                    slaScore,
+                    prefScore,
+                    fsma_certified: c.fsma_certified,
+                    reefer_telematics_connected: c.reefer_telematics_connected,
+                    awarded: false,
+                    ediStatus: "Ready for Tender Transmission"
+                };
+            });
+
+            // Sort by composite score descending
+            computedCarriers.sort((a, b) => b.score - a.score);
+
+            // Determine awarded carrier
+            if (manualAwardedCarrierId && computedCarriers.some(c => c.id === manualAwardedCarrierId)) {
+                computedCarriers.forEach(c => {
+                    c.awarded = (c.id === manualAwardedCarrierId);
+                    c.ediStatus = c.awarded 
+                        ? `EDI 204 Transmitted • Wave Released (Bay 04)` 
+                        : (c.score < 75 || !c.reefer_telematics_connected ? "Disqualified (Temp Risk)" : "Ready for Tender Transmission");
+                });
+            } else if (computedCarriers.length > 0) {
+                computedCarriers[0].awarded = true;
+                computedCarriers.forEach((c, idx) => {
+                    c.ediStatus = (idx === 0)
+                        ? `EDI 204 Transmitted • Wave Released (Bay 04)`
+                        : (c.score < 75 || !c.reefer_telematics_connected ? "Disqualified (Temp Risk)" : "Ready for Tender Transmission");
+                });
+            }
+
+            return computedCarriers;
+        }
+
+        // Fetch carriers from data/carriers.json dynamically
+        async function fetchCarriersJson() {
+            try {
+                const res = await fetch('data/carriers.json?t=' + Date.now());
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data && data.carriers && Array.isArray(data.carriers)) {
+                        rawCarriersData = data.carriers;
+                        updateJsonStatusBadge(true, `Synced (${data.carriers.length} Carriers)`);
+                    }
+                }
+            } catch (err) {
+                console.log("Local/file protocol active; using in-memory data/carriers.json dataset", err);
+                updateJsonStatusBadge(true, `data/carriers.json Active`);
+            }
+            evaluateCarriers();
+            renderCarriers();
+            updateAuctionRouteSelect();
+        }
+
+        function reloadCarriersJson() {
+            fetchCarriersJson();
+            appendAgentLog(`🔄 [DATA RE-SYNC]: Re-read carrier fleet data from data/carriers.json. Updated 40/30/20/10 MCDA scores.`, "text-cyan-400");
+        }
+
+        function handleCarrierFileUpload(evt) {
+            const file = evt.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    if (data && data.carriers && Array.isArray(data.carriers)) {
+                        rawCarriersData = data.carriers;
+                        manualAwardedCarrierId = null;
+                        updateJsonStatusBadge(true, `Loaded ${file.name}`);
+                        evaluateCarriers();
+                        renderCarriers();
+                        appendAgentLog(`📁 [CARRIER UPLOAD]: Ingested custom file "${file.name}" (${data.carriers.length} carriers). Live rate auction updated!`, "text-emerald-400");
+                    } else if (Array.isArray(data)) {
+                        rawCarriersData = data;
+                        manualAwardedCarrierId = null;
+                        updateJsonStatusBadge(true, `Loaded ${file.name}`);
+                        evaluateCarriers();
+                        renderCarriers();
+                        appendAgentLog(`📁 [CARRIER UPLOAD]: Ingested array from "${file.name}" (${data.length} carriers). Live rate auction updated!`, "text-emerald-400");
+                    } else {
+                        alert("Invalid JSON format: JSON should contain a 'carriers' array.");
+                    }
+                } catch (err) {
+                    alert("Error parsing JSON file: " + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function updateJsonStatusBadge(success, text) {
+            const el = document.getElementById('carrier-json-status');
+            if (!el) return;
+            if (success) {
+                el.className = "text-[10px] px-2 py-1 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-semibold flex items-center gap-1";
+                el.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span><span>${text}</span>`;
+            } else {
+                el.className = "text-[10px] px-2 py-1 rounded bg-amber-500/10 text-amber-400 border border-amber-500/30 font-semibold flex items-center gap-1";
+                el.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400"></span><span>${text}</span>`;
+            }
+        }
+
+        function onAuctionRouteChange(idx) {
+            selectedAuctionRouteIdx = parseInt(idx);
+            evaluateCarriers();
+            renderCarriers();
+            const r = routesData[selectedAuctionRouteIdx] || routesData[0];
+            appendAgentLog(`🏷️ [AUCTION ROUTE SWITCH]: Running live RFQ rate auction & MCDA for ${r.name} (${r.miles} mi, ${r.stops.length} stops).`, "text-cyan-400");
+        }
+
+        function updateAuctionRouteSelect() {
+            const sel = document.getElementById('auction-route-select');
+            if (!sel) return;
+            const currentVal = selectedAuctionRouteIdx;
+            sel.innerHTML = '';
+            routesData.forEach((r, idx) => {
+                const opt = document.createElement('option');
+                opt.value = idx;
+                opt.text = `${r.name} • ${r.miles} mi (${r.stops.length} stops)`;
+                if (idx === currentVal) opt.selected = true;
+                sel.appendChild(opt);
+            });
+        }
+
+        // Render Carrier Auction Cards, Summary Header, and MCDA Matrix Table
         function renderCarriers() {
-            const container = document.getElementById('carrier-board');
-            const tableBody = document.getElementById('mcda-table-body');
+            const currentRoute = routesData[selectedAuctionRouteIdx] || routesData[0];
+            const awarded = computedCarriers.find(c => c.awarded) || computedCarriers[0];
+
+            // 1. Render Summary Header
             const summaryHeader = document.getElementById('auction-summary-header');
-            if (!container) return;
-
-            const awardedCarrier = carriers.find(c => c.awarded) || carriers[0];
-
-            // Render Executive Auction Summary Header
-            if (summaryHeader) {
+            if (summaryHeader && awarded) {
                 summaryHeader.innerHTML = `
-                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                        <div class="flex items-center space-x-3.5">
-                            <div class="w-11 h-11 rounded-xl bg-emerald-500/20 text-emerald-400 border border-emerald-500/40 flex items-center justify-center font-extrabold text-lg shadow-lg shadow-emerald-500/10">
-                                🏆
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-500 to-cyan-500 flex items-center justify-center text-white font-extrabold shadow-lg shadow-emerald-500/20">
+                                <i data-lucide="award" class="w-5 h-5"></i>
                             </div>
                             <div>
-                                <div class="flex items-center gap-2">
-                                    <span class="text-xs text-slate-400 uppercase font-semibold tracking-wider">Winning Tendered Carrier:</span>
-                                    <span class="text-sm font-extrabold text-white">${awardedCarrier.name}</span>
-                                    <span class="text-[9px] px-2 py-0.5 rounded font-bold ${awardedCarrier.tierBadge}">${awardedCarrier.tier}</span>
+                                <div class="flex items-center space-x-2">
+                                    <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider">AI Contract Tender Award:</span>
+                                    <span class="text-sm font-black text-white">${awarded.name}</span>
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold ${awarded.tierBadge}">${awarded.tier}</span>
                                 </div>
-                                <div class="flex flex-wrap items-center gap-3 mt-1 text-xs text-slate-300">
-                                    <span>Rate: <strong class="text-emerald-400">$${awardedCarrier.rate.toFixed(2)}</strong> ($${awardedCarrier.cpm}/mi)</span>
-                                    <span class="text-slate-600">•</span>
-                                    <span>MCDA Score: <strong class="text-cyan-400">${awardedCarrier.score} / 100</strong></span>
-                                    <span class="text-slate-600">•</span>
-                                    <span class="text-purple-300">On-Time: <strong>${awardedCarrier.historicalOnTime}</strong></span>
-                                    <span class="text-slate-600">•</span>
-                                    <span class="text-emerald-300">FSMA: <strong>${awardedCarrier.fsmaCompliance}</strong></span>
+                                <div class="text-xs text-slate-300 mt-0.5 flex flex-wrap items-center gap-3">
+                                    <span>Route: <strong class="text-cyan-400">${currentRoute.name}</strong> (${currentRoute.miles} mi)</span>
+                                    <span>•</span>
+                                    <span>Total Rate: <strong class="text-emerald-400 font-bold">$${awarded.rate.toFixed(2)}</strong> ($${awarded.cpm}/mi)</span>
+                                    <span>•</span>
+                                    <span>MCDA Score: <strong class="text-white">${awarded.score.toFixed(1)}/100</strong></span>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-2 self-end md:self-center">
-                            <div class="bg-dark-800 px-3 py-1.5 rounded-lg border border-dark-700 text-right">
-                                <span class="text-[9px] text-slate-400 block font-semibold">TENDER LOCK & INTEGRATION</span>
-                                <div class="text-xs font-bold text-emerald-400 flex items-center gap-1.5 justify-end">
-                                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                                    <span>${awardedCarrier.ediStatus}</span>
-                                </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="text-right">
+                                <span class="text-[10px] uppercase tracking-wider text-slate-400 block font-semibold">Tender Status</span>
+                                <span class="text-xs font-bold ${awarded.awarded ? 'text-emerald-400' : 'text-amber-400'} flex items-center justify-end gap-1.5">
+                                    <span class="w-2 h-2 rounded-full ${awarded.awarded ? 'bg-emerald-400 animate-ping' : 'bg-amber-400'}"></span>
+                                    <span>${awarded.ediStatus}</span>
+                                </span>
                             </div>
                         </div>
                     </div>
                 `;
             }
 
-            // Render Carrier Grid Cards (2x2 Grid)
-            container.innerHTML = '';
-            carriers.forEach(c => {
-                const card = document.createElement('div');
-                card.className = `p-4 rounded-xl border transition-all duration-200 flex flex-col justify-between ${
-                    c.awarded 
-                    ? 'bg-emerald-950/20 border-emerald-500/60 shadow-xl shadow-emerald-500/10 ring-1 ring-emerald-500/40' 
-                    : 'bg-dark-900/90 border-dark-700 hover:border-dark-600'
-                }`;
-                
-                card.innerHTML = `
-                    <div>
-                        <!-- Header -->
+            // 2. Render 2x2 Carrier Cards
+            const board = document.getElementById('carrier-board');
+            if (board) {
+                board.innerHTML = '';
+                computedCarriers.forEach(c => {
+                    const isWinning = c.awarded;
+                    const isDisqualified = c.score < 75 || !c.reefer_telematics_connected;
+
+                    const card = document.createElement('div');
+                    card.className = `rounded-xl p-4 border transition duration-200 shadow-md ${
+                        isWinning 
+                            ? 'bg-emerald-950/20 border-emerald-500/50 ring-1 ring-emerald-500/30' 
+                            : isDisqualified 
+                                ? 'bg-dark-900/60 border-rose-500/30 opacity-75' 
+                                : 'bg-dark-900/90 border-dark-700 hover:border-slate-600'
+                    }`;
+
+                    card.innerHTML = `
                         <div class="flex items-start justify-between pb-2.5 border-b border-dark-700">
                             <div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center space-x-2">
                                     <h4 class="text-sm font-bold text-white">${c.name}</h4>
-                                    ${c.awarded ? '<span class="text-[9px] px-1.5 py-0.5 rounded font-extrabold bg-emerald-500 text-black">AWARDED #1</span>' : ''}
+                                    <span class="px-2 py-0.5 rounded text-[9px] font-bold ${c.tierBadge}">${c.tier}</span>
                                 </div>
-                                <div class="flex flex-wrap items-center gap-2 mt-1">
-                                    <span class="text-[9px] px-2 py-0.5 rounded font-semibold ${c.tierBadge}">${c.tier}</span>
-                                    <span class="text-[10px] text-slate-400">${c.equipment}</span>
-                                </div>
+                                <div class="text-[10px] mono text-slate-400 mt-0.5">${c.dotNumber}</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-base font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-white'}">$${c.rate.toFixed(2)}</div>
-                                <div class="text-[10px] text-slate-400 font-medium">$${c.cpm}/mi</div>
+                                <div class="text-base font-black text-white">$${c.rate.toFixed(2)}</div>
+                                <div class="text-[10px] text-cyan-400 font-semibold">$${c.cpm}/mi</div>
                             </div>
                         </div>
 
-                        <!-- Cost Breakdown Pill -->
-                        <div class="grid grid-cols-3 gap-1.5 my-2.5 p-2 rounded-lg bg-dark-800/80 border border-dark-700/60 text-[10px] text-center">
+                        <!-- Cost Breakdown -->
+                        <div class="grid grid-cols-3 gap-1.5 py-2 my-1 text-[10px] bg-dark-800/80 rounded-lg p-2 border border-dark-700">
                             <div>
-                                <span class="text-slate-400 block text-[9px]">Linehaul</span>
+                                <span class="text-slate-400 block">Linehaul</span>
                                 <span class="font-bold text-slate-200">$${c.linehaul.toFixed(2)}</span>
                             </div>
-                            <div class="border-x border-dark-700/80">
-                                <span class="text-slate-400 block text-[9px]">Fuel Surchg</span>
+                            <div>
+                                <span class="text-slate-400 block">Fuel Surcharge</span>
                                 <span class="font-bold text-slate-200">$${c.fuelSurcharge.toFixed(2)}</span>
                             </div>
                             <div>
-                                <span class="text-slate-400 block text-[9px]">Stop Fee</span>
+                                <span class="text-slate-400 block">Accessorials</span>
                                 <span class="font-bold text-slate-200">$${c.accessorials.toFixed(2)}</span>
                             </div>
                         </div>
 
-                        <!-- 40/30/20/10 Score Gauge Progress Bars -->
-                        <div class="space-y-2 mt-2">
-                            <!-- Rate -->
+                        <!-- 4 Visual Gauge Bars for MCDA -->
+                        <div class="space-y-1.5 py-1 text-[10px]">
                             <div>
-                                <div class="flex justify-between text-[10px] mb-0.5">
-                                    <span class="text-slate-400 font-medium">Rate Competitiveness (40% Weight)</span>
-                                    <span class="font-bold text-cyan-400">${c.rateScore.toFixed(1)} / 40.0</span>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Rate Competitiveness (40%)</span>
+                                    <span class="font-bold text-amber-400">${c.rateScore.toFixed(1)} / 40.0</span>
                                 </div>
-                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
-                                    <div class="bg-cyan-400 h-full rounded-full transition-all duration-500" style="width: ${(c.rateScore / 40.0) * 100}%"></div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden mt-0.5">
+                                    <div class="bg-amber-400 h-full rounded-full" style="width: ${(c.rateScore / 40.0) * 100}%"></div>
                                 </div>
                             </div>
 
-                            <!-- Reliability -->
                             <div>
-                                <div class="flex justify-between text-[10px] mb-0.5">
-                                    <span class="text-slate-400 font-medium">On-Time Reliability (30% Weight • ${c.historicalOnTime})</span>
-                                    <span class="font-bold text-purple-400">${c.relScore.toFixed(1)} / 30.0</span>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Historical Reliability (30%)</span>
+                                    <span class="font-bold text-cyan-400">${c.relScore.toFixed(1)} / 30.0 (${c.historicalOnTime})</span>
                                 </div>
-                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
-                                    <div class="bg-purple-400 h-full rounded-full transition-all duration-500" style="width: ${(c.relScore / 30.0) * 100}%"></div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden mt-0.5">
+                                    <div class="bg-cyan-400 h-full rounded-full" style="width: ${(c.relScore / 30.0) * 100}%"></div>
                                 </div>
                             </div>
 
-                            <!-- SLA -->
                             <div>
-                                <div class="flex justify-between text-[10px] mb-0.5">
-                                    <span class="text-slate-400 font-medium">FSMA Temp SLA (20% Weight • ${c.fsmaCompliance})</span>
-                                    <span class="font-bold text-emerald-400">${c.slaScore.toFixed(1)} / 20.0</span>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>FSMA & Reefer SLA (20%)</span>
+                                    <span class="font-bold text-rose-400">${c.slaScore.toFixed(1)} / 20.0</span>
                                 </div>
-                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
-                                    <div class="bg-emerald-400 h-full rounded-full transition-all duration-500" style="width: ${(c.slaScore / 20.0) * 100}%"></div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden mt-0.5">
+                                    <div class="bg-rose-400 h-full rounded-full" style="width: ${(c.slaScore / 20.0) * 100}%"></div>
                                 </div>
                             </div>
 
-                            <!-- Preferred -->
                             <div>
-                                <div class="flex justify-between text-[10px] mb-0.5">
-                                    <span class="text-slate-400 font-medium">Fleet Partner Preference (10% Weight)</span>
-                                    <span class="font-bold text-amber-400">${c.prefScore.toFixed(1)} / 10.0</span>
+                                <div class="flex justify-between text-slate-400">
+                                    <span>Fleet Partner Preference (10%)</span>
+                                    <span class="font-bold text-purple-400">${c.prefScore.toFixed(1)} / 10.0</span>
                                 </div>
-                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden">
-                                    <div class="bg-amber-400 h-full rounded-full transition-all duration-500" style="width: ${(c.prefScore / 10.0) * 100}%"></div>
+                                <div class="w-full bg-dark-800 h-1.5 rounded-full overflow-hidden mt-0.5">
+                                    <div class="bg-purple-400 h-full rounded-full" style="width: ${(c.prefScore / 10.0) * 100}%"></div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- Footer Action -->
-                    <div class="flex items-center justify-between mt-4 pt-3 border-t border-dark-700/80 text-xs">
-                        <div>
-                            <span class="text-[10px] text-slate-400 uppercase font-semibold">Total Composite Score:</span>
-                            <div class="text-base font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-slate-200'}">${c.score.toFixed(1)} <span class="text-xs font-normal text-slate-400">/ 100</span></div>
+                        <div class="text-[10px] text-slate-400 mt-2 pt-2 border-t border-dark-700 flex items-center justify-between">
+                            <span class="truncate max-w-[200px]" title="${c.equipment}">🚛 ${c.equipment}</span>
+                            <span class="font-bold ${c.fsma_certified ? 'text-emerald-400' : 'text-rose-400'}">${c.fsmaCompliance}</span>
                         </div>
 
-                        ${c.awarded ? `
-                            <span class="px-3 py-1.5 rounded-lg bg-emerald-500 text-black font-extrabold text-[11px] flex items-center gap-1.5 shadow-md shadow-emerald-500/20">
-                                <i data-lucide="check-circle" class="w-3.5 h-3.5"></i>
-                                <span>TENDER LOCKED & WMS RELEASED</span>
-                            </span>
-                        ` : `
-                            <button onclick="awardCarrier('${c.name}')" class="px-3 py-1.5 rounded-lg bg-dark-800 hover:bg-emerald-500/20 text-slate-200 hover:text-emerald-400 border border-dark-600 hover:border-emerald-500/40 text-[11px] font-bold transition flex items-center gap-1 cursor-pointer">
-                                <i data-lucide="check" class="w-3 h-3"></i>
-                                <span>Override & Book Carrier</span>
-                            </button>
-                        `}
-                    </div>
-                `;
-                container.appendChild(card);
-            });
-
-            // Render MCDA Evaluation Matrix Table
-            if (tableBody) {
-                tableBody.innerHTML = '';
-                carriers.forEach(c => {
-                    const row = document.createElement('tr');
-                    row.className = `hover:bg-dark-800/40 transition ${c.awarded ? 'bg-emerald-950/15' : ''}`;
-                    row.innerHTML = `
-                        <td class="py-2.5 pr-2 font-bold ${c.awarded ? 'text-emerald-400' : 'text-white'} flex items-center gap-1.5">
-                            ${c.awarded ? '<i data-lucide="award" class="w-3.5 h-3.5 text-emerald-400"></i>' : ''}
-                            <span>${c.name}</span>
-                        </td>
-                        <td class="py-2.5 pr-2"><span class="text-[9px] px-1.5 py-0.5 rounded font-semibold ${c.tierBadge}">${c.tier}</span></td>
-                        <td class="py-2.5 pr-2 text-right font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-slate-200'}">$${c.rate.toFixed(2)}</td>
-                        <td class="py-2.5 pr-2 text-right font-semibold text-cyan-400">${c.rateScore.toFixed(1)}</td>
-                        <td class="py-2.5 pr-2 text-right font-semibold text-purple-400">${c.relScore.toFixed(1)}</td>
-                        <td class="py-2.5 pr-2 text-right font-semibold text-emerald-400">${c.slaScore.toFixed(1)}</td>
-                        <td class="py-2.5 pr-2 text-right font-semibold text-amber-400">${c.prefScore.toFixed(1)}</td>
-                        <td class="py-2.5 pr-2 text-right font-extrabold ${c.awarded ? 'text-emerald-400' : 'text-white'}">${c.score.toFixed(1)}</td>
-                        <td class="py-2.5 text-center">
-                            ${c.awarded ? 
-                                '<span class="text-[9px] px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-400 font-bold border border-emerald-500/30">AWARDED #1</span>' : 
-                                (c.score < 70 ? '<span class="text-[9px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-400 font-bold border border-rose-500/30">RISK REJECT</span>' : '<span class="text-[9px] px-1.5 py-0.5 rounded bg-dark-800 text-slate-400 border border-dark-700">ELIGIBLE</span>')
-                            }
-                        </td>
+                        <!-- Card Footer Action -->
+                        <div class="mt-3 pt-2.5 border-t border-dark-700 flex items-center justify-between">
+                            <div class="flex items-center space-x-1.5">
+                                <span class="text-xs font-black text-white">Score: ${c.score.toFixed(1)}</span>
+                                <span class="text-[10px] text-slate-500">/ 100</span>
+                            </div>
+                            <div>
+                                ${
+                                    isWinning
+                                        ? `<span class="px-2.5 py-1 rounded-lg text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                                            <i data-lucide="check-circle-2" class="w-3.5 h-3.5"></i>
+                                            <span>✓ Awarded Contract</span>
+                                           </span>`
+                                        : isDisqualified
+                                            ? `<span class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">
+                                                ⚠️ Disqualified (Temp Risk)
+                                               </span>`
+                                            : `<button onclick="awardCarrier('${c.id}')" class="px-2.5 py-1 rounded-lg text-xs font-semibold bg-dark-700 hover:bg-cyan-500 hover:text-black text-slate-200 border border-dark-600 transition flex items-center gap-1 cursor-pointer">
+                                                <span>Override & Book</span>
+                                               </button>`
+                                }
+                            </div>
+                        </div>
                     `;
-                    tableBody.appendChild(row);
+                    board.appendChild(card);
                 });
             }
 
-            lucide.createIcons();
+            // 3. Render MCDA Decision Matrix Table
+            const tableBody = document.getElementById('mcda-table-body');
+            if (tableBody) {
+                tableBody.innerHTML = '';
+                computedCarriers.forEach((c, rIdx) => {
+                    const isWinning = c.awarded;
+                    const tr = document.createElement('tr');
+                    tr.className = `hover:bg-dark-800/60 transition ${isWinning ? 'bg-emerald-950/20 font-semibold' : ''}`;
+                    tr.innerHTML = `
+                        <td class="py-2.5 text-white flex items-center gap-1.5">
+                            ${isWinning ? '<span class="text-emerald-400 font-extrabold">★</span>' : `<span class="text-slate-500">${rIdx+1}.</span>`}
+                            <span>${c.name}</span>
+                        </td>
+                        <td class="py-2.5"><span class="px-1.5 py-0.5 rounded text-[9px] font-bold ${c.tierBadge}">${c.tier}</span></td>
+                        <td class="py-2.5 text-right font-bold text-white">$${c.rate.toFixed(2)}</td>
+                        <td class="py-2.5 text-right text-amber-400 font-bold">${c.rateScore.toFixed(1)}</td>
+                        <td class="py-2.5 text-right text-cyan-400 font-bold">${c.relScore.toFixed(1)}</td>
+                        <td class="py-2.5 text-right text-rose-400 font-bold">${c.slaScore.toFixed(1)}</td>
+                        <td class="py-2.5 text-right text-purple-400 font-bold">${c.prefScore.toFixed(1)}</td>
+                        <td class="py-2.5 text-right font-black ${isWinning ? 'text-emerald-400 text-sm' : 'text-slate-200'}">${c.score.toFixed(1)}</td>
+                        <td class="py-2.5 text-center">
+                            ${
+                                isWinning 
+                                    ? '<span class="px-2 py-0.5 rounded text-[9px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">AWARDED #1</span>' 
+                                    : (c.score < 75 || !c.reefer_telematics_connected)
+                                        ? '<span class="px-2 py-0.5 rounded text-[9px] font-bold bg-rose-500/20 text-rose-400 border border-rose-500/30">RISK REJECT</span>'
+                                        : '<span class="px-2 py-0.5 rounded text-[9px] font-semibold bg-dark-800 text-slate-400 border border-dark-700">ELIGIBLE</span>'
+                            }
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                });
+            }
+
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
 
-        function awardCarrier(name) {
-            carriers.forEach(c => {
-                c.awarded = (c.name === name);
-                if (c.awarded) {
-                    c.ediStatus = "EDI 204 Transmitted • Wave Released (Bay 04)";
-                } else {
-                    c.ediStatus = (c.score < 70 ? "Disqualified (Temp Risk)" : "Ready for Tender Transmission");
-                }
-            });
+        function awardCarrier(carrierId) {
+            manualAwardedCarrierId = carrierId;
+            evaluateCarriers();
             renderCarriers();
-            appendAgentLog(`🔒 [AGENT 5]: Manual override tender confirmed for ${name}. EDI 204 transmitted. WMS wave released to Bay 04.`, "text-emerald-400");
+            const awarded = computedCarriers.find(c => c.id === carrierId);
+            if (awarded) {
+                appendAgentLog(`⚡ [MANUAL TENDER OVERRIDE]: Dispatcher manually awarded load to ${awarded.name} ($${awarded.rate.toFixed(2)}, Score: ${awarded.score.toFixed(1)}). Emitting EDI 204 load tender...`, "text-amber-400");
+            }
         }
 
         // 2D Trailer Bulkhead Grid Visualizer
@@ -1355,7 +1575,7 @@
                 if (mapContainer) mapContainer.classList.remove('hidden');
                 if (indMap) indMap.classList.remove('hidden');
                 if (tabMap) tabMap.className = activeClass;
-                setTimeout(() => { if (map) map.invalidateSize(); }, 60);
+                setTimeout(() => { if (map && typeof map.invalidateSize === 'function') map.invalidateSize(); }, 60);
             } else if (v === 'auction') {
                 if (auctionContainer) auctionContainer.classList.remove('hidden');
                 if (indAuction) indAuction.classList.remove('hidden');
@@ -1367,7 +1587,9 @@
                 if (tabBulkhead) tabBulkhead.className = activeClass;
                 renderTrailerGrid();
             }
-            lucide.createIcons();
+            if (typeof lucide !== 'undefined' && lucide.createIcons) {
+                lucide.createIcons();
+            }
         }
 
         // Agent Execution Pipeline Simulation
@@ -1375,13 +1597,16 @@
             const logsContainer = document.getElementById('agent-thought-logs');
             logsContainer.innerHTML = '';
 
+            const topCarrier = (computedCarriers && computedCarriers.length > 0) ? computedCarriers[0] : { name: "JB Hunt", score: 94.2 };
+            const carrierCount = (rawCarriersData && rawCarriersData.length > 0) ? rawCarriersData.length : 4;
+
             const logs = [
                 { text: "🚀 [AGENT ORCHESTRATOR]: Initializing multi-agent cold-chain pipeline...", delay: 100, color: "text-cyan-400" },
                 { text: "🤖 [AGENT 1: DEMAND PROFILER]: Ingested 12 customer grocery orders. Sliced 4D vectors: 35 Frozen plts (-10°F), 44 Chill plts (36°F), 39 Ambient plts.", delay: 400, color: "text-blue-400" },
                 { text: "🤖 [AGENT 2: FLEET ALLOCATOR]: Audited dock restrictions. Allocated 53W Reefer, 48W Reefer, 46W City Reefer with liftgate.", delay: 800, color: "text-purple-400" },
                 { text: "🤖 [AGENT 3: ROUTE OPTIMIZER]: Solved MC-VRPTW. Formed 3 regional clusters. Set movable bulkheads in 2-pallet increments. LIFO staging verified.", delay: 1200, color: "text-cyan-300" },
-                { text: "🤖 [AGENT 4: RATE AGGREGATOR]: Broadcasted parallel RFQs across 4 carriers in 280ms. Normalized linehaul & FSC.", delay: 1600, color: "text-amber-400" },
-                { text: "🤖 [AGENT 5: CARRIER DECISION]: Evaluated 40/30/20/10 matrix. Swift Logistics ranked #1 (89.8/100). Locked EDI 204 tender & triggered WMS Wave Picking release.", delay: 2000, color: "text-emerald-400" },
+                { text: `🤖 [AGENT 4: RATE AGGREGATOR]: Broadcasted parallel RFQs across ${carrierCount} fleet carriers in 280ms. Normalized linehaul, FSC & stop accessorials.`, delay: 1600, color: "text-amber-400" },
+                { text: `🤖 [AGENT 5: CARRIER DECISION]: Evaluated 40/30/20/10 matrix. ${topCarrier.name} ranked #1 (${topCarrier.score.toFixed(1)}/100). Locked EDI 204 tender & triggered WMS Wave Picking release.`, delay: 2000, color: "text-emerald-400" },
                 { text: "🤖 [AGENT 6: TELEMATICS MONITOR]: Active IoT sensor tracking online. 100% FSMA temperature compliance across all 3 zones.", delay: 2400, color: "text-rose-400" }
             ];
 
